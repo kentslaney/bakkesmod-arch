@@ -1,14 +1,14 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.40
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
 license=('GPL')
-groups=()
+groups=('mingw-w64')
 depends=()
-makedepends=('mingw-w64')
+makedepends=()
 optdepends=()
 source=(
     "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModSetup.exe"
