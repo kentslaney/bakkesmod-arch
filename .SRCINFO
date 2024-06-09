@@ -1,0 +1,16 @@
+pkgbase = bakkesmod-steam
+	pkgdesc = A mod aimed at making you better at Rocket League!
+	pkgver = 2.40
+	pkgrel = 1
+	url = https://bakkesmod.com/
+	arch = x86_64
+	groups = mingw-w64
+	license = GPL
+	source = https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModSetup.exe
+	source = https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModInjectorWin7.zip
+	source = https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = bakkesmod-steam
