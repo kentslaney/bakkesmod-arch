@@ -22,6 +22,7 @@ build() {
     mkdir -p "$patches"
     ln -sf /usr/x86_64-w64-mingw32/include/windows.h "$patches/Windows.h"
     ln -sf /usr/x86_64-w64-mingw32/include/sdkddkver.h "$patches/SDKDDKVer.h"
+    ln -sf /usr/x86_64-w64-mingw32/include/shlobj.h "$patches/shlobj_core.h"
     ln -sf "$ref/BakkesModWPF/Resource.h" "$patches/resource.h"
     CXX_FLAGS=( "-std=c++20" "-static-libgcc" "-static-libstdc++" "-static" "-municode" )
     CXX_version=`ls /usr/lib/gcc/x86_64-w64-mingw32/ | sort --version-sort | tail -1`
@@ -40,7 +41,8 @@ build() {
             DllInjector dllInjector;
             std::wstring ps = L"RocketLeague.exe";
             std::filesystem::path ws =
-                "C:\\users\\steamuser\\Application Data\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
+                "C:\\users\\steamuser\\AppData\\Roaming"
+                "\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
             dllInjector.InjectDLL(ps, ws);
             return 0;
         }
@@ -53,6 +55,7 @@ build() {
         "$ref/BakkesModInjectorC++/WindowsUtils.h" > "$patches/WindowsUtils.h"
     sed -z "s@$getter[^{]*{@$getter { return \"$docs\";@" \
         "$ref/BakkesModInjectorC++/WindowsUtils.cpp" > "$patches/WindowsUtils.cpp"
+    ln -sf "$patches/WindowsUtils.h" "$patches/windowsutils.h"
 
     if [ -f "$srcdir/inject.exe" ]; then
         echo "reusing existing inject.exe"
@@ -63,6 +66,27 @@ build() {
             "$ref/BakkesModInjectorC++/DllInjector.cpp" \
             "$srcdir/main.cpp" -o "$srcdir/inject.exe"
     fi
+
+    cat <<"    EOF" > "$srcdir/setup.cpp"
+        #include "BakkesModInstallation.h"
+
+        int wmain(int argc, wchar_t* argv[]) {
+            BakkesModInstallation installer;
+            //LOG_LINE(INFO, installer.IsInstalled());
+            return 0;
+        }
+    EOF
+
+    #if [ -f "$srcdir/setup.exe" ]; then
+    #    echo "reusing existing setup.exe"
+    #else
+    #    patch -p0 -d "$ref" < "$srcdir/bakkesmod-steam/installer.diff"
+    #    x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
+    #        "$patches/WindowsUtils.cpp" \
+    #        "$ref/BakkesModInjectorC++/SettingsManager.cpp" \
+    #        "$ref/BakkesModInjectorC++/BakkesModInstallation.cpp" \
+    #        -luser32 -lole32 "$srcdir/setup.cpp" -o "$srcdir/setup.exe"
+    #fi
 
     chmod a+x "$srcdir/BakkesMod.exe"
 }
@@ -81,9 +105,10 @@ package() {
     else
         WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/BakkesModSetup.exe"
     fi
-    python "$srcpath/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    dll_patch="$srcdir/bakkesmod-steam/dll_patch.py" 
+    python "$dll_patch" "$bm_pfx/bakkesmod/dll"
 
-    cp -f "$srcdir/BakkesMod.exe" "$srcdir/inject.exe" "$srcpath/dll_patch.py" "$bm_pfx"
+    cp -f "$srcdir/BakkesMod.exe" "$srcdir/inject.exe" "$dll_patch" "$bm_pfx"
     echo "$paths" > "$bm_pfx/runner.sh"
     chmod a+x "$bm_pfx/runner.sh"
     cat <<"    EOF" >> "$bm_pfx/runner.sh"

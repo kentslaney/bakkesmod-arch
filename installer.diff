@@ -1,0 +1,71 @@
+diff --git BakkesModInjectorC++/BakkesModInstallation.cpp BakkesModInjectorC++/BakkesModInstallation.cpp
+index df34c31..e7fe871 100644
+--- BakkesModInjectorC++/BakkesModInstallation.cpp
++++ BakkesModInjectorC++/BakkesModInstallation.cpp
+@@ -1,8 +1,8 @@
+ #include "BakkesModInstallation.h"
+ #include <fstream>
+ #include <string>
+-#include <QtWidgets/qfiledialog.h>
+-#include <QtWidgets/qmessagebox.h>
++//#include <QtWidgets/qfiledialog.h>
++//#include <QtWidgets/qmessagebox.h>
+ #include <fstream>
+ #include <sstream>
+ #include "logger.h"
+@@ -11,6 +11,8 @@
+ #include <shlobj_core.h>
+ #include "json.hpp"
+ //std::string BakkesModInstallation::overrideBakkesModFolder = "";
++#include <initguid.h>
++#include <knownfolders.h>
+ 
+ void BakkesModInstallation::resetBMFolder()
+ {
+@@ -465,7 +467,7 @@ std::vector<std::string> BakkesModInstallation::GetEpicVersion()
+ 					try
+ 					{
+ 
+-						js = json::parse(std::ifstream(p));
++						js = json::parse(std::ifstream(p.path()));
+ 					}
+ 					catch (...)
+ 					{
+@@ -520,7 +522,7 @@ std::vector<std::string> BakkesModInstallation::GetEpicVersion()
+ 					LOG_LINE_W(INFO, L"FOUND MANIFEST (Legendary) " << p.path().wstring());
+ 					try
+ 					{
+-						js = json::parse(std::ifstream(p));
++						js = json::parse(std::ifstream(p.path()));
+ 					}
+ 					catch (...)
+ 					{
+diff --git BakkesModInjectorC++/BakkesModInstallation.h BakkesModInjectorC++/BakkesModInstallation.h
+index aa340ef..0742429 100644
+--- BakkesModInjectorC++/BakkesModInstallation.h
++++ BakkesModInjectorC++/BakkesModInstallation.h
+@@ -2,9 +2,9 @@
+ #include "stdafx.h"
+ #include "windowsutils.h"
+ #include "SettingsManager.h"
+-#include <QTWidgets/qwidget.h>
++//#include <QTWidgets/qwidget.h>
+ #include <filesystem>
+-class BakkesModInstallation : public QWidget
++class BakkesModInstallation //: public QWidget
+ {
+ private:
+ 	std::filesystem::path bakkesModFolder = "";
+diff --git BakkesModInjectorC++/vdf_parser.h BakkesModInjectorC++/vdf_parser.h
+index ed31ccf..95acf88 100644
+--- BakkesModInjectorC++/vdf_parser.h
++++ BakkesModInjectorC++/vdf_parser.h
+@@ -111,7 +111,7 @@ namespace tyti
+ 
+ 			inline std::string string_converter(const std::wstring& w)
+ 			{
+-#if WIN32
++#ifdef WIN32
+ 				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv1;
+ #else
+ 				std::wstring_convert<std::codecvt_utf8<wchar_t>> conv1;
