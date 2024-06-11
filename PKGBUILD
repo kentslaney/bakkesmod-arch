@@ -14,19 +14,19 @@ source=(
     "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModSetup.exe"
     "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModInjectorWin7.zip"
     "https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master"
-    "https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
+    "loopback::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 build() {
     ref=`find "$srcdir" -name "*org*"`
-    find `find "$srcdir" -name "*-steam*"` -type f | xargs -J % mv % "$srcdir"
+    find `find "$srcdir" -name "*-steam*"` -type f | xargs -I % mv -f % "$srcdir"
     patches="$srcdir/include"
     mkdir -p "$patches"
     ln -sf /usr/x86_64-w64-mingw32/include/windows.h "$patches/Windows.h"
     ln -sf /usr/x86_64-w64-mingw32/include/sdkddkver.h "$patches/SDKDDKVer.h"
     ln -sf /usr/x86_64-w64-mingw32/include/shlobj.h "$patches/shlobj_core.h"
     ln -sf "$ref/BakkesModWPF/Resource.h" "$patches/resource.h"
-    CXX_FLAGS=( "-std=c++20" "-static-libgcc" "-static-libstdc++" "-static" "-municode" )
+    CXX_FLAGS=( "-std=c++17" "-static-libgcc" "-static-libstdc++" "-static" "-municode" )
     CXX_version=`ls /usr/lib/gcc/x86_64-w64-mingw32/ | sort --version-sort | tail -1`
     CXX_LD=(
         "-I$patches"
@@ -82,7 +82,7 @@ build() {
     if [ -f "$srcdir/setup.exe" ]; then
         echo "reusing existing setup.exe"
     else
-        patch -p0 -d "$ref" < "$srcdir/installer.diff"
+        patch -p0 -N -d "$ref" < "$srcdir/installer.diff" || true
         x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
             "$patches/WindowsUtils.cpp" \
             "$ref/BakkesModInjectorC++/SettingsManager.cpp" \
@@ -105,7 +105,7 @@ package() {
     if [ -d "$bm_pfx" ]; then
         echo "$bm_pfx already exists; skipping BakkesMod setup"
     else
-        WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/BakkesModSetup.exe"
+        WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/setup.exe"
     fi
     dll_patch="$srcdir/dll_patch.py"
     python "$dll_patch" "$bm_pfx/bakkesmod/dll"

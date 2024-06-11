@@ -14,6 +14,7 @@ pkgbase = bakkesmod-steam
 	source = https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModSetup.exe
 	source = https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModInjectorWin7.zip
 	source = https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master
+	source = https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master
 	sha256sums = SKIP
 	sha256sums = SKIP
 	sha256sums = SKIP
