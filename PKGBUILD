@@ -105,7 +105,7 @@ package() {
     if [ -d "$bm_pfx" ]; then
         echo "$bm_pfx already exists; skipping BakkesMod setup"
     else
-        WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/setup.exe"
+        WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/BakkesModSetup.exe"
     fi
     dll_patch="$srcdir/dll_patch.py"
     python "$dll_patch" "$bm_pfx/bakkesmod/dll"
