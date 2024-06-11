@@ -8,7 +8,7 @@ url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads')
+makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python')
 optdepends=()
 source=(
     "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesModSetup.exe"
@@ -40,7 +40,7 @@ build() {
             DllInjector dllInjector;
             std::wstring ps = L"RocketLeague.exe";
             std::filesystem::path ws =
-                "C:\\users\\steamuser\\Application Data\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
+                "C:\\users\\steamuser\\Application Data\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
             dllInjector.InjectDLL(ps, ws);
             return 0;
         }
@@ -81,8 +81,9 @@ package() {
     else
         WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$srcdir/BakkesModSetup.exe"
     fi
+    python "$srcpath/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
-    cp -f "$srcdir/BakkesMod.exe" "$srcdir/inject.exe" "$bm_pfx"
+    cp -f "$srcdir/BakkesMod.exe" "$srcdir/inject.exe" "$srcpath/dll_patch.py" "$bm_pfx"
     echo "$paths" > "$bm_pfx/runner.sh"
     chmod a+x "$bm_pfx/runner.sh"
     cat <<"    EOF" >> "$bm_pfx/runner.sh"
@@ -94,6 +95,7 @@ package() {
     # setup=`find "$HOME/.steam/steam/userdata" -name "localconfig.vdf"`
     # setup=`grep 252950 -A 10 "$setup" | grep LaunchOptions | sed 's@^\([^"]*"\)\{3\}@@'`
     # echo "set launch options to: \"$bm_pfx/launch.sh & $setup"
-    # I recommend the -NoKeyboardUI option
+    # # above is still broken, with update status unclear
+    # # unrelated: I recommend the -NoKeyboardUI option
 }
 
