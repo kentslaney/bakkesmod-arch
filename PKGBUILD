@@ -73,7 +73,7 @@ build() {
         "$ref/BakkesModInjectorC++/WindowsUtils.cpp" > "$patches/WindowsUtils.cpp"
 
     # wstring memory issues
-    ws="C:\\\\\\\\users\\\\\\\\steamuser\\\\\\\\Application Data\\\\\\\\bakkesmod\\\\\\\\bakkesmod/dll\\\\\\\\bakkesmod_promptless.dll";
+    ws='C:\\\\users\\\\steamuser\\\\Application Data\\\\bakkesmod\\\\bakkesmod/dll\\\\bakkesmod_promptless.dll';
     sed "s%path.wstring().c_str()%L\"$ws\"%" \
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
 
