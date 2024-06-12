@@ -43,19 +43,28 @@ build() {
     ln -sf "$ref/BakkesModWPF/Resource.h" "$patches/resource.h"
 
     # has to be below C++20 which removes ofstream functionality
-    CXX_FLAGS=( "-std=c++17" "-static-libgcc" "-static-libstdc++" "-static" "-municode" "-mconsole" "-lpsapi" )
+    CXX_FLAGS=( "-std=c++17" "-static-libgcc" "-static-libstdc++" "-static" "-municode" "-mconsole" "-lpsapi" "-w" )
     CXX_LD=( "-I$patches" "-I/usr/x86_64-w64-mingw32/include" "-I$ref/BakkesModInjectorC++" )
 
     # call injector with patched dll
     cat <<"    EOF" > "$srcdir/main.cpp"
         #include "DllInjector.h"
+        #include <iostream>
 
         int wmain(int argc, wchar_t* argv[]) {
+            std::wstring ps = L"RocketLeague.exe";
             DllInjector dllInjector;
+            if (argc > 1 && std::wstring(argv[1]) == L"launching") {
+                std::cout << "Injector waiting for launch" << std::endl;
+                while (dllInjector.GetProcessID64(ps) == 0) {
+                    Sleep(1000);
+                }
+                std::cout << "Found PID, attempting injection" << std::endl;
+            }
             std::filesystem::path ws =
                 "C:\\users\\steamuser\\AppData\\Roaming\\"
                 "bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
-            dllInjector.InjectDLL(L"RocketLeague.exe", ws);
+            dllInjector.InjectDLL(ps, ws);
             return 0;
         }
     EOF
@@ -90,12 +99,12 @@ build() {
     # make bakkesmod folder to expand release into and output RL version
     cat <<"    EOF" > "$srcdir/status.cpp"
         #include "BakkesModInstallation.h"
-        #include "stdio.h"
+        #include <iostream>
 
         int wmain(int argc, wchar_t* argv[]) {
             BakkesModInstallation installer;
             installer.CreateAppDataFolderIfDoesntExist();
-            std::cout << installer.GetSteamVersion() << std::endl;
+            std::cout << installer.GetSteamVersion();
             return 0;
         }
     EOF
@@ -132,24 +141,31 @@ package() {
     EOF
     chmod a+x "$srcdir/runner.sh"
     RL_version=`"$srcdir/runner.sh" "$srcdir/status.exe" 2>/dev/null`
-    echo "rocket league version: $RL_version"
+    echo "build version string: $RL_version-$( cat "$srcdir/version.txt" )-$pkgver-$pkgrel"
 
     # expand and patch dll (capitalization changes between latest and explicit version)
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "$compressed" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
-    echo -n "shunted file addresses for DLL patch: "
-    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    #echo -n "shunted file addresses for DLL patch: "
+    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll" > /dev/null
 
     cp -f "$srcdir/inject.exe" "$srcdir/status.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
 
-    echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
+    #echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
 
-    # echo "$bm_pfx/runner.sh $bm_pfx/BakkesMod.exe" > "$bm_pfx/launch.sh"
-    # setup=`find "$HOME/.steam/steam/userdata" -name "localconfig.vdf"`
-    # setup=`grep 252950 -A 10 "$setup" | grep LaunchOptions | sed 's@^\([^"]*"\)\{3\}@@'`
-    # # The above doesn't return anything if the user hasn't used launch options before
+    cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."
+    loader="$srcdir/bakkesmod-steam-user-settings.py"
+    conf="$proton/../user_settings.py"
+    sig=`sha256sum "$loader" | sed "s% *[^ ]*$%%"`
+    if ! grep "$sig" "$conf" > /dev/null; then
+        echo "### $sig $( basename "$loader" )" >> "$conf"
+        cat "$srcdir/bakkesmod-steam-user-settings.py" >> "$conf"
+        echo "### $sig EOF" >> "$conf"
+    fi
+    echo "to finish install, set BAKKES=1 in your launch options, or \"BAKKES=1 %command%\" if you don't have any yet"
+    echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
 }
-# unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode
+# unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode; thanks for reading!
 
