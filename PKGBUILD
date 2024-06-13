@@ -95,32 +95,6 @@ build() {
             "$patches/DllInjector.cpp" \
             "$srcdir/main.cpp" -o "$srcdir/inject.exe"
     fi
-
-    # make bakkesmod folder to expand release into and output RL version
-    cat <<"    EOF" > "$srcdir/status.cpp"
-        #include "BakkesModInstallation.h"
-        #include <iostream>
-
-        int wmain(int argc, wchar_t* argv[]) {
-            BakkesModInstallation installer;
-            installer.CreateAppDataFolderIfDoesntExist();
-            std::cout << installer.GetSteamVersion();
-            return 0;
-        }
-    EOF
-
-    if [ -f "$srcdir/status.exe" ]; then
-        echo "reusing existing status.exe"
-    else
-        # too many finicky changes to patch robustly
-        patch -p0 -N -d "$ref" < "$srcdir/installer.diff" || true
-        # -luser32 for FOLDERID and -lole for CoTaskMemFree
-        x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
-            "$patches/WindowsUtils.cpp" \
-            "$ref/BakkesModInjectorC++/SettingsManager.cpp" \
-            "$ref/BakkesModInjectorC++/BakkesModInstallation.cpp" \
-            -luser32 -lole32 "$srcdir/status.cpp" -o "$srcdir/status.exe"
-    fi
 }
 
 package() {
@@ -140,25 +114,33 @@ package() {
         WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
     EOF
     chmod a+x "$srcdir/runner.sh"
-    RL_version=`"$srcdir/runner.sh" "$srcdir/status.exe" 2>/dev/null`
+    mkdir -p "$bm_pfx"
+    RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
     echo "build version string: $RL_version-$( cat "$srcdir/version.txt" )-$pkgver-$pkgrel"
 
     # expand and patch dll (capitalization changes between latest and explicit version)
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "$compressed" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
-    #echo -n "shunted file addresses for DLL patch: "
-    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll" > /dev/null
+    echo -n "shunted file addresses for DLL patch: "
+    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
-    cp -f "$srcdir/inject.exe" "$srcdir/status.exe" "$bm_pfx"
+    cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
 
-    #echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
+    echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
 
     cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."
     loader="$srcdir/bakkesmod-steam-user-settings.py"
     conf="$proton/../user_settings.py"
     sig=`sha256sum "$loader" | sed "s% *[^ ]*$%%"`
+    others=`grep '^### \+overlaps \+[0-9a-fA-F]\{64\}\( \|$\)' "$loader" | sed 's%^\([^ ]\+ \+\)\{2\}\([^ ]\+\).*%\2%'`
+    touch "$conf"
+    matches=`echo $others | xargs -I % grep % "$conf"`
+    if [ ! -z "${matches}" ]; then
+        echo "found overlapping user_settings.py setup, aborting"
+        exit 1
+    fi
     if ! grep "$sig" "$conf" > /dev/null; then
         echo "### $sig $( basename "$loader" )" >> "$conf"
         cat "$srcdir/bakkesmod-steam-user-settings.py" >> "$conf"
