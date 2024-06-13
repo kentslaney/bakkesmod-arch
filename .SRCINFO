@@ -1,7 +1,7 @@
 pkgbase = bakkesmod-steam
 	pkgdesc = A mod aimed at making you better at Rocket League!
 	pkgver = 2.40
-	pkgrel = 7
+	pkgrel = 8
 	url = https://bakkesmod.com/
 	arch = x86_64
 	license = GPL

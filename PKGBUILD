@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.40
-pkgrel=7
+pkgrel=8
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -63,7 +63,7 @@ build() {
             }
             std::filesystem::path ws =
                 "C:\\users\\steamuser\\AppData\\Roaming\\"
-                "bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
+                "bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
             dllInjector.InjectDLL(ps, ws);
             return 0;
         }
@@ -82,7 +82,7 @@ build() {
         "$ref/BakkesModInjectorC++/WindowsUtils.cpp" > "$patches/WindowsUtils.cpp"
 
     # wstring memory issues
-    ws='C:\\\\users\\\\steamuser\\\\Application Data\\\\bakkesmod\\\\bakkesmod/dll\\\\bakkesmod_promptless.dll';
+    ws='C:\\\\users\\\\steamuser\\\\Application Data\\\\bakkesmod\\\\bakkesmod/dll\\\\bakkesmod.dll';
     sed "s%path.wstring().c_str()%L\"$ws\"%" \
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
 
