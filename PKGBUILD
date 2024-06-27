@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
-pkgver=2.40
-pkgrel=8
+pkgver=2.41
+pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -18,13 +18,13 @@ optdepends=()
 # "https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master"
 
 source=(
-    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.40/bakkesmod.zip" # manually save dll
-    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.40.zip" # manually build source
-    "loopback::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master" # promptless injector
+    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.41/bakkesmod.zip" # manually save dll
+    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.41.zip" # manually build source
+    "loopback::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
 )
 sha256sums=(
-    'b117958fad739ae2ab8bbf76f25024141e72eeba880e45a0c30ae6a956489712'
-    'dce175011c8df9bb5cfed576fd9efff8fdb2383d182fab99afde91d619aab4a4'
+    'd6ab60b6209c43ac450af14d71ebc30fa394a1359a7f37aa39326aecd8b587e2'
+    'e9cc066c5769f8c712c7216e470b659cdb63a2246b255f2ecfee25082a7d91ad'
     'SKIP'
 )
 
@@ -122,8 +122,8 @@ package() {
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "$compressed" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
-    echo -n "shunted file addresses for DLL patch: "
-    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    #echo -n "shunted file addresses for DLL patch: "
+    #python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
