@@ -1,3 +1,5 @@
+### replaces b5a430e9cf5078843d1a39f08ae95456891d4067872ad3512b04cb84f9a094c0
+
 import sys, os, pathlib, importlib.util
 
 user_settings = globals().get("user_settings", {})
@@ -17,12 +19,11 @@ for pattern in matching:
         if hasattr(mod, "flag"):
             if hasattr(mod, "update"):
                 cond(mod.flag, mod.update)
-            elif hasattr(mod, "user_settings"):
+            elif hasattr(mod, "user_settings") and check(mod.flag):
                 user_settings.update(mod.user_settings)
         elif hasattr(mod, "update"):
             mod.update(user_settings)
-        elif not hasattr(mod, "flags"):
-            if hasattr(mod, "user_settings"):
+        elif not hasattr(mod, "flags") and hasattr(mod, "user_settings"):
                 user_settings.update(mod.user_settings)
         if hasattr(mod, "flags"):
             for flag, handler in mod.flags.items():
@@ -30,5 +31,5 @@ for pattern in matching:
                     handler = lambda x: x.update(handler)
                 cond(flag, handler)
 
-#print('user_settings', user_settings)
+print('user_settings', user_settings)
 

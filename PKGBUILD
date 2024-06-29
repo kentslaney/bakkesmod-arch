@@ -1,14 +1,14 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.41
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python')
+makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads') #'python')
 optdepends=()
 
 # versionless URLs and official repo backups
@@ -17,10 +17,15 @@ optdepends=()
 # "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesMod.zip"
 # "https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master"
 
+rlver=( 2 0 41 )
+rlstr=$(IFS=. ; echo "${rlver[*]}")
+rlesc=$(IFS=- ; echo "${rlver[*]}")
+pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
+
 source=(
-    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.41/bakkesmod.zip" # manually save dll
-    "https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.41.zip" # manually build source
-    "loopback::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
+    "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
+    "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
+    "loopback-$pkgesc-$pkgrel.zip::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
 )
 sha256sums=(
     'd6ab60b6209c43ac450af14d71ebc30fa394a1359a7f37aa39326aecd8b587e2'
@@ -30,9 +35,12 @@ sha256sums=(
 
 build() {
     # folder with official injector release (commit hash in name)
-    ref=`find "$srcdir" -maxdepth 1 -name "*Cpp*" -type d`
+    ref=`find "$srcdir" -maxdepth 1 -name "*Cpp-$rlstr" -type d`
     # move loopback src to srcdir
-    find `find "$srcdir" -maxdepth 1 -name "*-steam*" -type d` -type f | xargs -I % mv -f % "$srcdir"
+    tmp=$(mktemp -d)
+    unzip -qd "$tmp" "$srcdir/loopback-$pkgesc-$pkgrel.zip"
+    mv "$tmp"/*/* "$srcdir"
+    rm -fr "$tmp"/* "$tmp"
 
     # MinGW and VS header disagreement
     patches="$srcdir/include"
@@ -86,15 +94,11 @@ build() {
     sed "s%path.wstring().c_str()%L\"$ws\"%" \
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
 
-    if [ -f "$srcdir/inject.exe" ]; then
-        echo "reusing existing inject.exe"
-    else
-        x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
-            "$patches/WindowsUtils.cpp" \
-            "$ref/BakkesModWPF/BakkesModWPF.cpp" \
-            "$patches/DllInjector.cpp" \
-            "$srcdir/main.cpp" -o "$srcdir/inject.exe"
-    fi
+    x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
+        "$patches/WindowsUtils.cpp" \
+        "$ref/BakkesModWPF/BakkesModWPF.cpp" \
+        "$patches/DllInjector.cpp" \
+        "$srcdir/main.cpp" -o "$srcdir/inject.exe"
 }
 
 package() {
@@ -116,11 +120,11 @@ package() {
     chmod a+x "$srcdir/runner.sh"
     mkdir -p "$bm_pfx"
     RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
-    echo "build version string: $RL_version-$( cat "$srcdir/version.txt" )-$pkgver-$pkgrel"
+    echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
     # expand and patch dll (capitalization changes between latest and explicit version)
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
-    unzip -oq "$compressed" -d "$bm_pfx/bakkesmod"
+    unzip -oq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     #echo -n "shunted file addresses for DLL patch: "
     #python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
@@ -134,20 +138,40 @@ package() {
     loader="$srcdir/bakkesmod-steam-user-settings.py"
     conf="$proton/../user_settings.py"
     sig=`sha256sum "$loader" | sed "s% *[^ ]*$%%"`
-    others=`grep '^### \+overlaps \+[0-9a-fA-F]\{64\}\( \|$\)' "$loader" | sed 's%^\([^ ]\+ \+\)\{2\}\([^ ]\+\).*%\2%'`
     touch "$conf"
-    matches=`echo $others | xargs -I % grep % "$conf"`
-    if [ ! -z "${matches}" ]; then
+    settings_version() {
+        grep "^### \+$1 \+[0-9a-fA-F]\{64\}\( \|$\)" "$loader" | \
+            sed 's%^\([^ ]\+ \+\)\{2\}\([^ ]\+\).*%\2%' | \
+            xargs -I % grep -n '^### \+%' "$conf"
+    }
+    if [ ! -z "$( settings_version overlaps )" ]; then
         echo "found overlapping user_settings.py setup, aborting"
         exit 1
     fi
-    if ! grep "$sig" "$conf" > /dev/null; then
-        echo "### $sig $( basename "$loader" )" >> "$conf"
-        cat "$srcdir/bakkesmod-steam-user-settings.py" >> "$conf"
-        echo "### $sig EOF" >> "$conf"
+    delimited="$srcdir/user_settings.py"
+    echo "### $sig $( basename "$loader" )" > "$delimited"
+    cat "$srcdir/bakkesmod-steam-user-settings.py" >> "$delimited"
+    echo "### $sig EOF" >> "$delimited"
+    updates=`settings_version replaces`
+    if [ ! -z "${updates}" ]; then
+        for (( pair=`echo "$updates" | wc -l`; pair>0; pair-=2 )); do
+            start=`head -n "$(( pair - 1 ))" - <<< "$updates" | tail -1`
+            end=`head -n "$(( pair ))" - <<< "$updates" | tail -1`
+            if ! grep "EOF$" - <<< "$end" > /dev/null|| grep "EOF$" - <<< "$start" > /dev/null; then
+                echo "mismatched checksum delimitors" >&2
+                exit 1
+            fi
+            start=`echo "$start" | cut -f1 -d':'`
+            end=`echo "$end" | cut -f1 -d':'`
+            echo -e "$(head -n "$(( $start - 1 ))" "$conf")\n$(tail -n +"$(( $end + 1 ))" "$conf")" > "$conf"
+        done
+        ins=`echo "$updates" | head -1 | cut -f1 -d':'`
+        echo -e "$(head -n "$(( $ins - 1 ))" "$conf")\n$( cat "$delimited" )\n$(tail -n +"$(( $ins ))" "$conf")" > "$conf"
+    elif ! grep "### \+$sig" "$conf" > /dev/null; then
+        cp "$delimited" "$conf"
     fi
-    echo "to finish install, set BAKKES=1 in your launch options, or \"BAKKES=1 %command%\" if you don't have any yet"
+    echo "to finish installing, update your launch options by prepending BAKKES=1 or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
     echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
 }
-# unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode; thanks for reading!
+# unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode
 
