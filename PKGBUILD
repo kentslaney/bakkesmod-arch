@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.41
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -25,7 +25,7 @@ pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
 source=(
     "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
     "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
-    "loopback-$pkgesc-$pkgrel.zip::https://api.github.com/repos/kentslaney/bakkesmod-steam/zipball/master"
+    "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-steam/archive/refs/tags/$pkgver-$pkgrel.zip"
 )
 sha256sums=(
     'd6ab60b6209c43ac450af14d71ebc30fa394a1359a7f37aa39326aecd8b587e2'
