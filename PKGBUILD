@@ -8,7 +8,7 @@ url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads') #'python')
+makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python')
 optdepends=()
 
 # versionless URLs and official repo backups
@@ -61,18 +61,27 @@ build() {
 
         int wmain(int argc, wchar_t* argv[]) {
             std::wstring ps = L"RocketLeague.exe";
+            auto official = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
+            auto promptless = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
+            const wchar_t* launcher = official;
             DllInjector dllInjector;
-            if (argc > 1 && std::wstring(argv[1]) == L"launching") {
+            bool launching = false;
+            for (int i = 1; i < argc; i++) {
+                auto arg = std::wstring(argv[i]);
+                if (arg == L"launching") {
+                    launching = true;
+                } else if (arg == L"promptless") {
+                    launcher = promptless;
+                }
+            }
+            if (launching) {
                 std::cout << "Injector waiting for launch" << std::endl;
                 while (dllInjector.GetProcessID64(ps) == 0) {
                     Sleep(1000);
                 }
                 std::cout << "Found PID, attempting injection" << std::endl;
             }
-            std::filesystem::path ws =
-                "C:\\users\\steamuser\\AppData\\Roaming\\"
-                "bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
-            dllInjector.InjectDLL(ps, ws);
+            dllInjector.InjectDLL(ps, launcher);
             return 0;
         }
     EOF
@@ -89,10 +98,11 @@ build() {
     sed -z "s%$getter[^{]*{%$getter { return \"$docs\";%" \
         "$ref/BakkesModInjectorC++/WindowsUtils.cpp" > "$patches/WindowsUtils.cpp"
 
-    # wstring memory issues
-    ws='C:\\\\users\\\\steamuser\\\\Application Data\\\\bakkesmod\\\\bakkesmod/dll\\\\bakkesmod.dll';
-    sed "s%path.wstring().c_str()%L\"$ws\"%" \
+    wpath="s%std::filesystem::path path%const wchar_t* path%g"
+    sed "s%path.wstring().c_str()%path%" \
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
+    sed -i "$wpath" "$patches/DllInjector.cpp"
+    sed "$wpath" "$ref/BakkesModInjectorC++/DllInjector.h" > "$patches/DllInjector.h"
 
     x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
         "$patches/WindowsUtils.cpp" \
@@ -126,8 +136,8 @@ package() {
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
-    #echo -n "shunted winuser calls for DLL patch: "
-    #python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    echo -n "shunted winuser calls for DLL patch: "
+    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
@@ -170,7 +180,8 @@ package() {
     elif ! grep "### \+$sig" "$conf" > /dev/null; then
         cp "$delimited" "$conf"
     fi
-    echo "to finish installing, update your launch options by prepending BAKKES=1 or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
+    echo "to finish installing, update your launch options by prepending \"BAKKES=1\" or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
+    echo "to inject the bakkesmod DLL without the message box about version verification, also prepend \"PROMPTLESS=1\""
     echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
 }
 # unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode

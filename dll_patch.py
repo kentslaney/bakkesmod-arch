@@ -76,8 +76,8 @@ def header(name, offset=0):
 def idata(f, off=None):
     off = off or offsets(f)
     magic = f.index(b'\x0b\x02')
-    iaddr = header("NumberOfRvaAndSizes", magic + 0xc)
-    isize = header("NumberOfRvaAndSizes", magic + 0x10)
+    iaddr = header(optionals[-1][1], magic + 0xc)
+    isize = header(optionals[-1][1], magic + 0x10)
     return little(f[slice(*iaddr)]) - off[1], little(f[slice(*isize)])
 
 ox = lambda x: tuple(map(hex, x))
