@@ -126,7 +126,7 @@ package() {
     compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
-    #echo -n "shunted file addresses for DLL patch: "
+    #echo -n "shunted winuser calls for DLL patch: "
     #python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"

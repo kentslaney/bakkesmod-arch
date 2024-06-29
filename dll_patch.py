@@ -24,41 +24,14 @@ def offsets(f):
             [little(f[i + 0x14 : i + 0x18]) for i in off],
         )]
 
-targets = [
-        b'Could not verify RL version',
-        b'Dunno how the user got here',
-        b'User wishes to inject anyway',
-    ]
-
 # gives storage locations of target phrases accounting for offsets
-def rel32(f):
+def rel32(f, target=b'Could not verify RL version'):
     text, rdata = offsets(f)
-    return [f.index(i) + rdata - text for i in targets]
+    return f.index(target) + rdata - text
 
 # gives positions of references to the target phrases
-def refs(f, rel=None, it=None):
-    default = rel is None and it is None
-    rel, it = rel or rel32(f), it or addr(f)
-    res = tuple(zip(*[(rel.index(x), i) for i, x in it if x in rel]))
-    if default:
-        assert res[0] == (0, 1, 2, 0, 1, 2)
-        return (res[1][:3], res[1][3:])
-    return res
-
-jcc32 = [b'\x0F' + int.to_bytes(i, 1, 'little') for i in range(0x80, 0x90)]
-jcc8 = list(bytes(range(0x70, 0x80)))
-
-# gives "inject anyway" jmp RVAs
-def branches(f, ref=None):
-    ref = ref or refs(f)
-    def inner(a, b):
-        seq = f[a : b]
-        op32 = [seq.index(i) for i in jcc32 if i in seq]
-        op8 = [seq.index(i) for i in jcc8 if i in seq]
-        loc32 = [a + i + 6 + little(seq[i + 2 : i + 6]) for i in op32]
-        loc8 = [a + i + 2 + little(seq[i + 1 : i + 2]) for i in op8]
-        return loc8 + loc32
-    return [max(m for m in inner(i, j) if m <= k) for i, j, k in ref]
+def refs(f, rel, it):
+    return tuple(i for i, x in it if x == rel)
 
 optionals = (
     (2, "Magic"),
@@ -134,32 +107,26 @@ def fns(f, iat=None, end=None, off=None):
     names = [f[i + 2 : f.index(b'\x00', i + 2)] for i in vas]
     return iat + names.index(b'MessageBoxA') * 8 + off[1] - off[0]
 
-def shunts(f, dbg=True):
-    loads, msg = refs(f), fns(f)
-    calls = [refs(f, (msg,), addr(f, *ref[:2], call64))[1][0] for ref in loads]
-    skips = branches(f, loads)
-    paired = tuple(zip(calls, skips))
+def calls(f, dbg=True):
+    loads, msg = refs(f, rel32(f), addr(f)), fns(f)
+    res = [refs(f, msg, (next(addr(f, ref, op=call64)),))[0] for ref in loads]
     if dbg:
-        print(tuple(map(ox, paired)))
-    return paired
+        print(ox(res))
+    return res
 
-jmp = lambda x: b'\xE9' + int.to_bytes(x, 4, "little")
-
-def mask(f, space=6):
+def mask(f, update=b'\xB8\x06\x00\x00\x00', space=6):
     prev, out = 0, b''
-    for pos, end in shunts(f):
-        update = jmp(end - pos - 5)
-        assert len(update) == 5
+    for pos in calls(f):
         out += f[prev:pos] + update + b'\x90' * (space - len(update))
         prev = pos + space
     out += f[prev:]
     assert len(f) == len(out)
     return out
 
-def dll(path, dest=None):
+def dll(path=None, dest=None):
     global Path
     from pathlib import Path
-    path = Path(path)
+    path = Path(__file__).parents[0] if path is None else Path(path)
     path = path if path.is_file() else path / "bakkesmod.dll"
     with open(path, "rb") as fp:
         f = fp.read()
