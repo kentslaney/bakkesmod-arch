@@ -133,7 +133,6 @@ package() {
     echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
     # expand and patch dll (capitalization changes between latest and explicit version)
-    compressed=`find "$srcdir" -name "[bB]akkes[Mm]od.zip"`
     unzip -oq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
