@@ -5,6 +5,14 @@ install and add `BAKKES=1` as a launch option for the official DLL or
 prompt. If you're unfamiliar with launch options, remember to add `%command%` at
 the end.
 
+The AUR package replaces the official updater with the system package manager,
+so use
+[bakkesmod-steam-git](https://aur.archlinux.org/packages/bakkesmod-steam-git)
+instead if the main repo ends up out of date (relative to the latest
+[BakkesModInjectorCpp](
+https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest)
+release).
+
 ## Promptless Injection
 The `dll_patch.py` script, followed by the BakkesMod DLL path as a CLI argument,
 will create a patched DLL version which will not prompt the user to verify
