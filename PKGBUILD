@@ -167,7 +167,7 @@ package() {
         for (( pair=`echo "$updates" | wc -l`; pair>0; pair-=2 )); do
             start=`head -n "$(( pair - 1 ))" - <<< "$updates" | tail -1`
             end=`head -n "$(( pair ))" - <<< "$updates" | tail -1`
-            if ! grep "EOF$" - <<< "$end" > /dev/null|| grep "EOF$" - <<< "$start" > /dev/null; then
+            if ! grep "EOF$" - <<< "$end" > /dev/null || grep "EOF$" - <<< "$start" > /dev/null; then
                 echo "mismatched checksum delimitors" >&2
                 exit 1
             fi
