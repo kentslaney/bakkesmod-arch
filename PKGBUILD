@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.41
-pkgrel=3
+pkgrel=4
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -152,7 +152,7 @@ package() {
     settings_version() {
         grep "^### \+$1 \+[0-9a-fA-F]\{64\}\( \|$\)" "$loader" | \
             sed 's%^\([^ ]\+ \+\)\{2\}\([^ ]\+\).*%\2%' | \
-            xargs -I % grep -n '^### \+%' "$conf"
+            xargs -I % grep -n '^### \+%' "$conf" || true
     }
     if [ ! -z "$( settings_version overlaps )" ]; then
         echo "found overlapping user_settings.py setup, aborting"
