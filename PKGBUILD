@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.41
-pkgrel=4
+pkgrel=5
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -103,7 +103,7 @@ build() {
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
     sed -i "$wpath" "$patches/DllInjector.cpp"
     sed "$wpath" "$ref/BakkesModInjectorC++/DllInjector.h" > "$patches/DllInjector.h"
-     x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
+    x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
         "$patches/WindowsUtils.cpp" \
         "$ref/BakkesModWPF/BakkesModWPF.cpp" \
         "$patches/DllInjector.cpp" \
