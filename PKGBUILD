@@ -103,8 +103,7 @@ build() {
         "$ref/BakkesModInjectorC++/DllInjector.cpp" > "$patches/DllInjector.cpp"
     sed -i "$wpath" "$patches/DllInjector.cpp"
     sed "$wpath" "$ref/BakkesModInjectorC++/DllInjector.h" > "$patches/DllInjector.h"
-
-    x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
+     x86_64-w64-mingw32-g++ "${CXX_FLAGS[@]}" "${CXX_LD[@]}" \
         "$patches/WindowsUtils.cpp" \
         "$ref/BakkesModWPF/BakkesModWPF.cpp" \
         "$patches/DllInjector.cpp" \
@@ -112,6 +111,10 @@ build() {
 }
 
 package() {
+    if [ ! -f "$HOME/.steam/steam/steamapps/compatdata/252950/config_info" ]; then
+        echo "could not find config_info: check that the first time setup has been run" >&2
+        exit 1
+    fi
     # 4th line of config_info contains the selected proton launcher's path
     paths=$(cat <<"    EOF"
         compat="$HOME/.steam/steam/steamapps/compatdata/252950"
