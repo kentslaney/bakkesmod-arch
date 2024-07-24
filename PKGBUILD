@@ -135,8 +135,7 @@ package() {
     RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
     echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
-    # expand and patch dll (capitalization changes between latest and explicit version)
-    unzip -oq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
+    unzip -uq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
     python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
@@ -187,4 +186,3 @@ package() {
     echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
 }
 # unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode
-
