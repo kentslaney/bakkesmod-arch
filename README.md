@@ -21,6 +21,3 @@ be used via Proton by adding `PROMPTLESS=1` as a launch option. The patched
 version should also get rid of the injection verification on Windows, provided
 that the BakkesMod DLL is replaced rather than duplicated, which is the default.
 
-## TODO
-- stop resetting the user's config on install
-
