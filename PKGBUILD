@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
-pkgver=2.41
-pkgrel=6
+pkgver=2.43
+pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -17,7 +17,7 @@ optdepends=()
 # "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesMod.zip"
 # "https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master"
 
-rlver=( 2 0 41 )
+rlver=( 2 0 43 )
 rlstr=$(IFS=. ; echo "${rlver[*]}")
 rlesc=$(IFS=- ; echo "${rlver[*]}")
 pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
@@ -28,8 +28,8 @@ source=(
     "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-steam/archive/refs/tags/$pkgver-$pkgrel.zip"
 )
 sha256sums=(
-    'd6ab60b6209c43ac450af14d71ebc30fa394a1359a7f37aa39326aecd8b587e2'
-    'e9cc066c5769f8c712c7216e470b659cdb63a2246b255f2ecfee25082a7d91ad'
+    '3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61'
+    '2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8'
     'SKIP'
 )
 
@@ -135,7 +135,7 @@ package() {
     RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
     echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
-    unzip -uq "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
+    unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
     python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
