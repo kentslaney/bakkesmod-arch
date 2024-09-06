@@ -1,5 +1,5 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
-pkgname=bakkesmod-steam
+pkgname=bakkesmod-legendary
 pkgver=2.43
 pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
@@ -31,6 +31,13 @@ sha256sums=(
     '3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61'
     '2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8'
     'SKIP'
+)
+legendary_prefixes=(
+    "$LEGENDARY_CONFIG_PATH"
+    "$HOME/.config/legendary"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/legendary"
+    "$HOME/.config/heroic/legendaryConfig/legendary"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/legendaryConfig/legendary"
 )
 
 build() {
@@ -111,28 +118,55 @@ build() {
 }
 
 package() {
-    if [ ! -f "$HOME/.steam/steam/steamapps/compatdata/252950/config_info" ]; then
-        echo "could not find config_info: check that the first time setup has been run" >&2
+    local RL_version=""
+    for fp in "${legendary_prefixes[@]}"; do
+        installed="$fp/installed.json"
+        if [ -f "$installed" ] && RL_version=`jq -er .Sugar.version < "$installed"`; then
+            break
+        fi
+    done
+    if (( "$RL_version" == "null" )); then
+        echo "could not find a LEGENDARY_CONFIG_PATH with Rocket League installed" >&2
         exit 1
     fi
-    # 4th line of config_info contains the selected proton launcher's path
-    paths=$(cat <<"    EOF"
-        compat="$HOME/.steam/steam/steamapps/compatdata/252950"
-        proton=`sed -n 4p "$compat/config_info" | xargs -d '\n' dirname`
-        bm_pfx="$compat/pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod"
+    json_pfx=`jq -e .Sugar.install_path < "$installed"`
+    pfx=`jq -er .Sugar.install_path < "$installed"`
+    pfx="$(dirname "$pfx")/Prefixes/default/Rocket League"
+    user=`grep '^"USERNAME"="' "$pfx/user.reg" | sed "s/^[^=]*=\"\|\"$//g"`
+    bm_pfx="$pfx/drive_c/users/$user/AppData/Roaming/bakkesmod"
+    mkdir -p "$bm_pfx"
+    py=$(sed "s/^ \{8\}//" <<"    EOF"
+        import os, configparser, pathlib, shlex
+        f, pfx = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX"))
+        cfg = configparser.ConfigParser()
+        cfg.read(f)
+        if not cfg.has_section("Sugar"):
+            cfg.add_section("Sugar")
+        cfg["Sugar"]["pre_launch_command"] = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
+        cfg["Sugar"]["pre_launch_wait"] = "true"
+        with open(f, "w") as fp:
+            cfg.write(fp)
     EOF
     )
-    # used in this function and for running resulting exe files
-    eval "$paths"
-    echo "$paths" > "$srcdir/runner.sh"
+    PFX="$bm_pfx" FP="$fp/config.ini" python -c "$py"
 
-    # supposedly this might need to be ESYNC in some cases but this works by default
-    cat <<"    EOF" >> "$srcdir/runner.sh"
-        WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
+    sed "s/^ \{8\}//" <<"    EOF" > "$bm_pfx/runner.py"
+        import argparse, os
+
+        with open("/proc/{}/cmdline".format(os.environ["PS"])) as fp:
+            cmd = fp.read().rstrip("\x00").split("\x00")
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--wine")
+        print(parser.parse_known_args(cmd)[0].wine)
     EOF
-    chmod a+x "$srcdir/runner.sh"
-    mkdir -p "$bm_pfx"
-    RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
+    echo "pfx=$json_pfx" > "$bm_pfx/runner.sh"
+    cat <<"    EOF" >> "$bm_pfx/runner.sh"
+        pfx="$(dirname "$pfx")/Prefixes/default/Rocket League"
+        bm_pfx=`dirname "$0"`
+        wine_bin=`PS="$PPID" python "$bm_pfx/runner.py"`
+        WINEFSYNC=1 WINEPREFIX="$pfx" "$wine_bin" "$bm_pfx/inject.exe" launching "$@" &
+    EOF
+
     echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
@@ -141,48 +175,7 @@ package() {
     python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
-    cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
-
-    echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
-
-    cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."
-    loader="$srcdir/bakkesmod-steam-user-settings.py"
-    conf="$proton/../user_settings.py"
-    sig=`sha256sum "$loader" | sed "s% *[^ ]*$%%"`
-    touch "$conf"
-    settings_version() {
-        grep "^### \+$1 \+[0-9a-fA-F]\{64\}\( \|$\)" "$loader" | \
-            sed 's%^\([^ ]\+ \+\)\{2\}\([^ ]\+\).*%\2%' | \
-            xargs -I % grep -n '^### \+%' "$conf" || true
-    }
-    if [ ! -z "$( settings_version overlaps )" ]; then
-        echo "found overlapping user_settings.py setup, aborting"
-        exit 1
-    fi
-    delimited="$srcdir/user_settings.py"
-    echo "### $sig $( basename "$loader" )" > "$delimited"
-    cat "$srcdir/bakkesmod-steam-user-settings.py" >> "$delimited"
-    echo "### $sig EOF" >> "$delimited"
-    updates=`settings_version replaces`
-    if [ ! -z "${updates}" ]; then
-        for (( pair=`echo "$updates" | wc -l`; pair>0; pair-=2 )); do
-            start=`head -n "$(( pair - 1 ))" - <<< "$updates" | tail -1`
-            end=`head -n "$(( pair ))" - <<< "$updates" | tail -1`
-            if ! grep "EOF$" - <<< "$end" > /dev/null || grep "EOF$" - <<< "$start" > /dev/null; then
-                echo "mismatched checksum delimitors" >&2
-                exit 1
-            fi
-            start=`echo "$start" | cut -f1 -d':'`
-            end=`echo "$end" | cut -f1 -d':'`
-            echo -e "$(head -n "$(( $start - 1 ))" "$conf")\n$(tail -n +"$(( $end + 1 ))" "$conf")" > "$conf"
-        done
-        ins=`echo "$updates" | head -1 | cut -f1 -d':'`
-        echo -e "$(head -n "$(( $ins - 1 ))" "$conf")\n$( cat "$delimited" )\n$(tail -n +"$(( $ins ))" "$conf")" > "$conf"
-    elif ! grep "### \+$sig" "$conf" > /dev/null; then
-        cp "$delimited" "$conf"
-    fi
-    echo "to finish installing, update your launch options by prepending \"BAKKES=1\" or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
-    echo "to inject the bakkesmod DLL without the message box about version verification, also prepend \"PROMPTLESS=1\""
-    echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
+    cd "$pfx/drive_c/users"
+    # creates broken (ignored) symlink if $user == "steamuser"
+    ln -sf "$user" "steamuser"
 }
-# unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode

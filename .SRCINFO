@@ -1,4 +1,4 @@
-pkgbase = bakkesmod-steam
+pkgbase = bakkesmod-legendary
 	pkgdesc = A mod aimed at making you better at Rocket League!
 	pkgver = 2.43
 	pkgrel = 1
@@ -18,4 +18,4 @@ pkgbase = bakkesmod-steam
 	sha256sums = 2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8
 	sha256sums = SKIP
 
-pkgname = bakkesmod-steam
+pkgname = bakkesmod-legendary
