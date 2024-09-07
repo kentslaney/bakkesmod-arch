@@ -1,14 +1,14 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
 pkgver=2.43
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python')
+makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python' 'jq')
 optdepends=()
 
 # versionless URLs and official repo backups
