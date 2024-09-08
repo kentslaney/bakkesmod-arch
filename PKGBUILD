@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.43
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -110,30 +110,44 @@ build() {
         "$srcdir/main.cpp" -o "$srcdir/inject.exe"
 }
 
-package() {
-    if [ ! -f "$HOME/.steam/steam/steamapps/compatdata/252950/config_info" ]; then
-        echo "could not find config_info: check that the first time setup has been run" >&2
+# 4th line of config_info contains the selected proton launcher's path
+proton_paths=$(cat <<'EOF'
+    steamapps="$HOME/.steam/steam/steamapps"
+    compat="$steamapps/compatdata/252950"
+    if [ ! -f "$steamapps/compatdata/252950/config_info" ]; then
+        echo "could not find steam's proton config for Rocket League" >&2
         exit 1
     fi
-    # 4th line of config_info contains the selected proton launcher's path
-    paths=$(cat <<"    EOF"
-        compat="$HOME/.steam/steam/steamapps/compatdata/252950"
-        proton=`sed -n 4p "$compat/config_info" | xargs -d '\n' dirname`
-        bm_pfx="$compat/pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod"
-    EOF
-    )
-    # used in this function and for running resulting exe files
-    eval "$paths"
-    echo "$paths" > "$srcdir/runner.sh"
+    proton=`sed -n 4p "$compat/config_info" | xargs -d '\n' dirname`
+    bm_pfx="$compat/pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod"
+EOF
+)
 
+remove_between() {
+    echo -e "$(head -n "$(( $1 - 1 ))" "$3")\n$(tail -n +"$(( $2 + 1 ))" "$3")"
+}
+
+insert_lines_before() { # 1 indexed line numbers like grep
+    echo -e "$(head -n "$(( $1 - 1 ))" "$3")\n$( cat "$2" )\n$(tail -n +"$(( $1 ))" "$3")"
+}
+
+build_version() {
+    RL_version=`grep buildid "$1/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
+    echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
+}
+
+package() {
+    # used in this function and for running resulting exe files
+    eval "$proton_paths"
+    echo "build version string: $(build_version "$steamapps")"
+
+    echo "$proton_paths" > "$srcdir/runner.sh"
     # supposedly this might need to be ESYNC in some cases but this works by default
     cat <<"    EOF" >> "$srcdir/runner.sh"
         WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
     EOF
     chmod a+x "$srcdir/runner.sh"
     mkdir -p "$bm_pfx"
-    RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
-    echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
@@ -143,7 +157,7 @@ package() {
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
 
-    echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
+    echo "direct injection command:" "'$bm_pfx/runner.sh' '$bm_pfx/inject.exe'"
 
     cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."
     loader="$srcdir/bakkesmod-steam-user-settings.py"
@@ -156,7 +170,7 @@ package() {
             xargs -I % grep -n '^### \+%' "$conf" || true
     }
     if [ ! -z "$( settings_version overlaps )" ]; then
-        echo "found overlapping user_settings.py setup, aborting"
+        echo "found overlapping user_settings.py setup, aborting" >&2
         exit 1
     fi
     delimited="$srcdir/user_settings.py"
@@ -172,12 +186,12 @@ package() {
                 echo "mismatched checksum delimitors" >&2
                 exit 1
             fi
-            start=`echo "$start" | cut -f1 -d':'`
-            end=`echo "$end" | cut -f1 -d':'`
-            echo -e "$(head -n "$(( $start - 1 ))" "$conf")\n$(tail -n +"$(( $end + 1 ))" "$conf")" > "$conf"
+            start=`echo "$start" | cut -f1 -d:`
+            end=`echo "$end" | cut -f1 -d:`
+            remove_between "$start" "$end" "$conf" > "$conf"
         done
-        ins=`echo "$updates" | head -1 | cut -f1 -d':'`
-        echo -e "$(head -n "$(( $ins - 1 ))" "$conf")\n$( cat "$delimited" )\n$(tail -n +"$(( $ins ))" "$conf")" > "$conf"
+        ins=`echo "$updates" | head -1 | cut -f1 -d:`
+        insert_lines_before "$ins" "$delimited" "$conf" > "$conf"
     elif ! grep "### \+$sig" "$conf" > /dev/null; then
         cp "$delimited" "$conf"
     fi
@@ -185,4 +199,26 @@ package() {
     echo "to inject the bakkesmod DLL without the message box about version verification, also prepend \"PROMPTLESS=1\""
     echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"
 }
+
+pre_remove() {
+    if ! ( eval "$proton_paths" ); then return 0; fi
+    eval "$proton_paths"
+    rm -f "$proton/../settings_252950_bakkes.py"
+    if ! ls "$proton/.." | grep "^settings_[0-9]\+\(_\|.py$\)" > /dev/null; then
+        loader="$srcdir/bakkesmod-steam-user-settings.py"
+        conf="$proton/../user_settings.py"
+        sig=`sha256sum "$loader" | sed "s% *[^ ]*$%%"`
+        echo "$loader $conf $sig"
+        if start=`grep -n "^### $sig $( basename "$loader" )$" "$conf"`; then
+            start=`echo "$start" | cut -d: -f1`
+            end=`grep -n "^### $sig EOF$" "$conf" | cut -d: -f1`
+            # only remove one
+            start=`echo "$start" | head -1`
+            end=`echo "$end" | awk "\$0 > $start" | head -1`
+            remove_between "$start" "$end" "$conf" > "$conf"
+        fi
+    fi
+    rm -fr "$bm_pfx"
+}
+
 # unrelated: I recommend the -NoKeyboardUI option for desktop big picture mode
