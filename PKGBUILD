@@ -153,9 +153,14 @@ heroic_env() {
     done
 }
 
+build_version() {
+    RL_version="$(installed_version "$1")"
+    echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
+}
+
 package() {
     installed=`install_data`
-    echo "build version string: $(installed_version "$installed")"
+    echo "build version string: $(build_version "$installed")"
 
     pfx=`wine_pfx "$installed"`
     user=`grep '^"USERNAME"="' "$pfx/user.reg" | sed "s/^[^=]*=\"\|\"$//g"`
