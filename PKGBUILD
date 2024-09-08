@@ -32,13 +32,6 @@ sha256sums=(
     '2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8'
     'SKIP'
 )
-legendary_prefixes=(
-    "$LEGENDARY_CONFIG_PATH"
-    "$HOME/.config/legendary"
-    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/legendary"
-    "$HOME/.config/heroic/legendaryConfig/legendary"
-    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/legendaryConfig/legendary"
-)
 
 build() {
     # folder with official injector release (commit hash in name)
@@ -117,11 +110,24 @@ build() {
         "$srcdir/main.cpp" -o "$srcdir/inject.exe"
 }
 
-package() {
+legendary_prefixes=(
+    "$LEGENDARY_CONFIG_PATH"
+    "$HOME/.config/legendary"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/legendary"
+    "$HOME/.config/heroic/legendaryConfig/legendary"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/legendaryConfig/legendary"
+)
+wine_bm_path="drive_c/users/steamuser/AppData/Roaming/bakkesmod"
+
+installed_version() {
+    jq -er .Sugar.version < "$1"
+}
+
+install_data() {
     local RL_version=""
     for fp in "${legendary_prefixes[@]}"; do
         installed="$fp/installed.json"
-        if [ -f "$installed" ] && RL_version=`jq -er .Sugar.version < "$installed"`; then
+        if [ -f "$installed" ] && RL_version=`installed_version "$installed"`; then
             break
         fi
     done
@@ -129,11 +135,24 @@ package() {
         echo "could not find a LEGENDARY_CONFIG_PATH with Rocket League installed" >&2
         exit 1
     fi
-    json_pfx=`jq -e .Sugar.install_path < "$installed"`
-    pfx=`jq -er .Sugar.install_path < "$installed"`
-    pfx="$(dirname "$pfx")/Prefixes/default/Rocket League"
+    echo "$installed"
+}
+
+wine_pfx() {
+    pfx=`jq -er .Sugar.install_path < "$1"`
+    echo "$(dirname "$pfx")/Prefixes/default/Rocket League"
+}
+
+package() {
+    installed=`install_data`
+    echo "build version string: $(installed_version "$installed")"
+
+    pfx=`wine_pfx "$installed"`
     user=`grep '^"USERNAME"="' "$pfx/user.reg" | sed "s/^[^=]*=\"\|\"$//g"`
-    bm_pfx="$pfx/drive_c/users/$user/AppData/Roaming/bakkesmod"
+    # creates broken (ignored) symlink if $user == "steamuser"
+    ( cd "$pfx/drive_c/users" && ln -sf "$user" "steamuser" )
+
+    bm_pfx="$pfx/$wine_bm_path"
     mkdir -p "$bm_pfx"
     py=$(sed "s/^ \{8\}//" <<"    EOF"
         import os, configparser, pathlib, shlex
@@ -142,13 +161,14 @@ package() {
         cfg.read(f)
         if not cfg.has_section("Sugar"):
             cfg.add_section("Sugar")
-        cfg["Sugar"]["pre_launch_command"] = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
+        cmd = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
+        cfg["Sugar"]["pre_launch_command"] = cmd
         cfg["Sugar"]["pre_launch_wait"] = "true"
         with open(f, "w") as fp:
             cfg.write(fp)
     EOF
     )
-    PFX="$bm_pfx" FP="$fp/config.ini" python -c "$py"
+    PFX="$bm_pfx" FP="$(dirname "$installed")/config.ini" python -c "$py"
 
     sed "s/^ \{8\}//" <<"    EOF" > "$bm_pfx/runner.py"
         import argparse, os
@@ -159,6 +179,8 @@ package() {
         parser.add_argument("--wine")
         print(parser.parse_known_args(cmd)[0].wine)
     EOF
+
+    json_pfx=`jq -e .Sugar.install_path < "$installed"`
     echo "pfx=$json_pfx" > "$bm_pfx/runner.sh"
     cat <<"    EOF" >> "$bm_pfx/runner.sh"
         pfx="$(dirname "$pfx")/Prefixes/default/Rocket League"
@@ -167,15 +189,45 @@ package() {
         WINEFSYNC=1 WINEPREFIX="$pfx" "$wine_bin" "$bm_pfx/inject.exe" launching "$@" &
     EOF
 
-    echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
-
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
     python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
-    cd "$pfx/drive_c/users"
-    # creates broken (ignored) symlink if $user == "steamuser"
-    ln -sf "$user" "steamuser"
 }
+
+pre_remove() {
+    installed=`install_data`
+    pfx=`wine_pfx "$installed"`
+    bm_pfx="$pfx/$wine_bm_path"
+
+    py=$(sed "s/^ \{8\}//" <<"    EOF"
+        import os, configparser, pathlib, shlex
+        f, pfx = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX"))
+        cfg = configparser.ConfigParser()
+        cfg.read(f)
+        if not cfg.has_section("Sugar"):
+            exit(0)
+        cmd = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
+        if (
+                cfg["Sugar"].get("pre_launch_command") == cmd and
+                cfg["Sugar"].get("pre_launch_wait") == "true"):
+            cfg.remove_option("Sugar", "pre_launch_command")
+            cfg.remove_option("Sugar", "pre_launch_wait")
+        if len(cfg.options("Sugar")) == 0:
+            cfg.remove_section("Sugar")
+        with open(str(f), "w") as fp:
+            cfg.write(fp)
+    EOF
+    )
+    PFX="$bm_pfx" FP="$(dirname "$installed")/config.ini" python -c "$py"
+    return 0
+
+    rm -fr "$bm_pfx"
+    linked="$pfx/drive_c/users/steamuser"
+    if [ -h "$linked" ]; then rm "$linked"
+    elif [ -d "$linked" ] && [ -h "$linked/steamuser" ]; then rm "$linked/steamuser"
+    fi
+}
+
