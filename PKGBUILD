@@ -131,19 +131,23 @@ insert_lines_before() { # 1 indexed line numbers like grep
     echo -e "$(head -n "$(( $1 - 1 ))" "$3")\n$( cat "$2" )\n$(tail -n +"$(( $1 ))" "$3")"
 }
 
+build_version() {
+    RL_version=`grep buildid "$1/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
+    echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
+}
+
 package() {
     # used in this function and for running resulting exe files
     eval "$proton_paths"
-    echo "$proton_paths" > "$srcdir/runner.sh"
+    echo "build version string: $(build_version "$steamapps")"
 
+    echo "$proton_paths" > "$srcdir/runner.sh"
     # supposedly this might need to be ESYNC in some cases but this works by default
     cat <<"    EOF" >> "$srcdir/runner.sh"
         WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
     EOF
     chmod a+x "$srcdir/runner.sh"
     mkdir -p "$bm_pfx"
-    RL_version=`grep buildid "$HOME/.steam/steam/steamapps/appmanifest_252950.acf" | sed 's%[^0-9]%%g'`
-    echo "build version string: $RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
@@ -153,7 +157,7 @@ package() {
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
 
-    echo "direct injection command:" "$bm_pfx/runner.sh $bm_pfx/inject.exe"
+    echo "direct injection command:" "'$bm_pfx/runner.sh' '$bm_pfx/inject.exe'"
 
     cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."
     loader="$srcdir/bakkesmod-steam-user-settings.py"
