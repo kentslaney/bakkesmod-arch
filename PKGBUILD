@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
 pkgver=2.43
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -25,7 +25,7 @@ pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
 source=(
     "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
     "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
-    "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-steam/archive/refs/tags/$pkgver-$pkgrel.zip"
+    "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/$pkgver-$pkgrel-legendary.zip"
 )
 sha256sums=(
     '3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61'
@@ -117,6 +117,10 @@ legendary_prefixes=(
     "$HOME/.config/heroic/legendaryConfig/legendary"
     "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/legendaryConfig/legendary"
 )
+heroic_prefixes=(
+    "$HOME/.config/heroic/GamesConfig/Sugar.json"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/GamesConfig/Sugar.json"
+)
 wine_bm_path="drive_c/users/steamuser/AppData/Roaming/bakkesmod"
 
 installed_version() {
@@ -124,23 +128,29 @@ installed_version() {
 }
 
 install_data() {
-    local RL_version=""
     for fp in "${legendary_prefixes[@]}"; do
         installed="$fp/installed.json"
-        if [ -f "$installed" ] && RL_version=`installed_version "$installed"`; then
-            break
+        if [ -f "$installed" ] && ( installed_version "$installed" > /dev/null ); then
+            echo "$installed"
+            return 0
         fi
     done
-    if (( "$RL_version" == "null" )); then
-        echo "could not find a LEGENDARY_CONFIG_PATH with Rocket League installed" >&2
-        exit 1
-    fi
-    echo "$installed"
+    echo "could not find a LEGENDARY_CONFIG_PATH with Rocket League installed" >&2
+    exit 1
 }
 
 wine_pfx() {
     pfx=`jq -er .Sugar.install_path < "$1"`
     echo "$(dirname "$pfx")/Prefixes/default/Rocket League"
+}
+
+heroic_env() {
+    for fp in "${heroic_prefixes[@]}"; do
+        if [ -f "$fp" ]; then
+            echo "$fp"
+            return 0
+        fi
+    done
 }
 
 package() {
@@ -155,20 +165,46 @@ package() {
     bm_pfx="$pfx/$wine_bm_path"
     mkdir -p "$bm_pfx"
     py=$(sed "s/^ \{8\}//" <<"    EOF"
-        import os, configparser, pathlib, shlex
-        f, pfx = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX"))
+        import os, pathlib
+        f, pfx, env = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX", "SUGAR_ENV"))
+
+        # legendary launch command
+        import configparser, shlex
         cfg = configparser.ConfigParser()
         cfg.read(f)
         if not cfg.has_section("Sugar"):
             cfg.add_section("Sugar")
-        cmd = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
+        cmd = shlex.join(("sh", str(pfx / "runner.sh")))
         cfg["Sugar"]["pre_launch_command"] = cmd
         cfg["Sugar"]["pre_launch_wait"] = "true"
         with open(f, "w") as fp:
             cfg.write(fp)
+
+        # heroic env variables
+        import json
+        if not env.is_file():
+            exit(0)
+        with open(env) as fp:
+            opt = json.load(fp)
+        environ = opt["Sugar"]["enviromentOptions"]
+        preset = [i["key"] for i in environ]
+        changed = False
+        for var in ("BAKKES", "PROMPTLESS"):
+            if var not in preset:
+                changed = True
+                environ.append({"key": var, "value": "1"})
+            else:
+                last = len(preset) - 1 - list(reversed(preset)).index(var)
+                initial = environ[last]["value"]
+                if initial != "1":
+                    print(f"warning: Heroic flag {var} is set to {initial}")
+        if changed:
+            with open(env, "w") as fp:
+                json.dump(opt, fp, indent=2)
     EOF
     )
-    PFX="$bm_pfx" FP="$(dirname "$installed")/config.ini" python -c "$py"
+    cfg="$(dirname "$installed")/config.ini"
+    PFX="$bm_pfx" FP="$cfg" SUGAR_ENV="$(heroic_env)" python -c "$py"
 
     sed "s/^ \{8\}//" <<"    EOF" > "$bm_pfx/runner.py"
         import argparse, os
@@ -186,7 +222,9 @@ package() {
         pfx="$(dirname "$pfx")/Prefixes/default/Rocket League"
         bm_pfx=`dirname "$0"`
         wine_bin=`PS="$PPID" python "$bm_pfx/runner.py"`
-        WINEFSYNC=1 WINEPREFIX="$pfx" "$wine_bin" "$bm_pfx/inject.exe" launching "$@" &
+        if [ "$BAKKES" != 1 ]; then exit 0; fi
+        opt=`[ "$PROMPTLESS" = 1 ] && echo "promptless"`
+        WINEFSYNC=1 WINEPREFIX="$pfx" "$wine_bin" "$bm_pfx/inject.exe" launching "${opt[@]}" &
     EOF
 
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
@@ -203,26 +241,47 @@ pre_remove() {
     bm_pfx="$pfx/$wine_bm_path"
 
     py=$(sed "s/^ \{8\}//" <<"    EOF"
-        import os, configparser, pathlib, shlex
-        f, pfx = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX"))
+        import os, pathlib
+        f, pfx, env = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX", "SUGAR_ENV"))
+
+        # legendary launch command
+        import configparser, shlex
         cfg = configparser.ConfigParser()
         cfg.read(f)
-        if not cfg.has_section("Sugar"):
-            exit(0)
-        cmd = shlex.join(("sh", str(pfx / "runner.sh"), "promptless"))
-        if (
-                cfg["Sugar"].get("pre_launch_command") == cmd and
-                cfg["Sugar"].get("pre_launch_wait") == "true"):
-            cfg.remove_option("Sugar", "pre_launch_command")
-            cfg.remove_option("Sugar", "pre_launch_wait")
-        if len(cfg.options("Sugar")) == 0:
-            cfg.remove_section("Sugar")
-        with open(str(f), "w") as fp:
-            cfg.write(fp)
+        if cfg.has_section("Sugar"):
+            cmd = shlex.join(("sh", str(pfx / "runner.sh")))
+            if (
+                    cfg["Sugar"].get("pre_launch_command").startswith(cmd) and
+                    cfg["Sugar"].get("pre_launch_wait") == "true"):
+                cfg.remove_option("Sugar", "pre_launch_command")
+                cfg.remove_option("Sugar", "pre_launch_wait")
+            if len(cfg.options("Sugar")) == 0:
+                cfg.remove_section("Sugar")
+            with open(f, "w") as fp:
+                cfg.write(fp)
+
+        # heroic env variables
+        import json
+        if env.is_file():
+            with open(env) as fp:
+                opt = json.load(fp)
+            environ = opt["Sugar"]["enviromentOptions"]
+            preset = [i["key"] for i in environ]
+            changed = False
+            for var in ("BAKKES", "PROMPTLESS"):
+                if var in preset:
+                    last = len(preset) - 1 - list(reversed(preset)).index(var)
+                    if environ[last]["value"] == "1":
+                        changed = True
+                        environ.pop(last)
+                        preset.pop(last)
+            if changed:
+                with open(env, "w") as fp:
+                    json.dump(opt, fp, indent=2)
     EOF
     )
-    PFX="$bm_pfx" FP="$(dirname "$installed")/config.ini" python -c "$py"
-    return 0
+    cfg="$(dirname "$installed")/config.ini"
+    PFX="$bm_pfx" FP="$cfg" SUGAR_ENV="$(heroic_env)" python -c "$py"
 
     rm -fr "$bm_pfx"
     linked="$pfx/drive_c/users/steamuser"

@@ -1,17 +1,9 @@
-# BakkesMod for Steam on Arch
-[Hosted on AUR](https://aur.archlinux.org/packages/bakkesmod-steam): just
-install and add `BAKKES=1` as a launch option for the official DLL or
-`BAKKES=1 PROMPTLESS=1` for the patched version without the version detection
-prompt. If you're unfamiliar with launch options, remember to add `%command%` at
-the end.
+# BakkesMod for Legendary on Arch
+[Hosted on AUR](https://aur.archlinux.org/packages/bakkesmod-legendary)
 
 The AUR package replaces the official updater with the system package manager,
-so use
-[bakkesmod-steam-git](https://aur.archlinux.org/packages/bakkesmod-steam-git)
-instead if the main repo ends up out of date (relative to the latest
-[BakkesModInjectorCpp](
-https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest)
-release).
+upstream is [BakkesModInjectorCpp](
+https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest).
 
 ## Promptless Injection
 The `dll_patch.py` script, followed by the BakkesMod DLL path as a CLI argument,
