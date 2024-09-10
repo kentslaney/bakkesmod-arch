@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
 pkgver=2.43
-pkgrel=3
+pkgrel=4
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -61,17 +61,13 @@ build() {
 
         int wmain(int argc, wchar_t* argv[]) {
             std::wstring ps = L"RocketLeague.exe";
-            auto official = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
-            auto promptless = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
-            const wchar_t* launcher = official;
+            const wchar_t* launcher = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
             DllInjector dllInjector;
             bool launching = false;
             for (int i = 1; i < argc; i++) {
                 auto arg = std::wstring(argv[i]);
                 if (arg == L"launching") {
                     launching = true;
-                } else if (arg == L"promptless") {
-                    launcher = promptless;
                 }
             }
             if (launching) {
@@ -212,13 +208,27 @@ package() {
     PFX="$bm_pfx" FP="$cfg" SUGAR_ENV="$(heroic_env)" python -c "$py"
 
     sed "s/^ \{8\}//" <<"    EOF" > "$bm_pfx/runner.py"
-        import argparse, os
+        import argparse, os, shlex, pathlib
 
         with open("/proc/{}/cmdline".format(os.environ["PS"])) as fp:
             cmd = fp.read().rstrip("\x00").split("\x00")
         parser = argparse.ArgumentParser()
-        parser.add_argument("--wine")
-        print(parser.parse_known_args(cmd)[0].wine)
+        parser.add_argument("--wine", action="append", default=[])
+        parser.add_argument("--wrapper", default=[])
+        flags, _ = parser.parse_known_args(cmd)
+        flags.wrapper = flags.wrapper and shlex.split(flags.wrapper)
+        pfx = pathlib.Path(__file__).parents[0]
+
+        def wrap(wrapper):
+            proton = os.environ.get("PROTONPATH", "")
+            if len(flags.wrapper) < 2 or not proton:
+                return wrapper
+            relative = pathlib.Path(flags.wrapper[0]).relative_to(pathlib.Path(proton))
+            if relative != pathlib.Path('proton'):
+                return wrapper
+            return [str(proton / pathlib.Path("files/bin/wine64"))]
+
+        print(shlex.join(wrap(flags.wrapper) + flags.wine + [str(pfx / "inject.exe")]))
     EOF
 
     json_pfx=`jq -e .Sugar.install_path < "$installed"`
@@ -228,14 +238,18 @@ package() {
         bm_pfx=`dirname "$0"`
         wine_bin=`PS="$PPID" python "$bm_pfx/runner.py"`
         if [ "$BAKKES" != 1 ]; then exit 0; fi
-        opt=`[ "$PROMPTLESS" = 1 ] && echo "promptless"`
-        WINEFSYNC=1 WINEPREFIX="$pfx" "$wine_bin" "$bm_pfx/inject.exe" launching "${opt[@]}" &
+        dll=`[ "$PROMPTLESS" = 1 ] && echo "bakkesmod_promptless.dll" || echo "bakkesmod_official.dll"`
+        ln -sf "$bm_pfx/bakkesmod/dll/$dll" "$bm_pfx/bakkesmod/dll/bakkesmod.dll"
+        WINEFSYNC=1 WINEPREFIX="$pfx" eval "$wine_bin launching &"
     EOF
 
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
-    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    dll_path="$bm_pfx/bakkesmod/dll"
+    python "$srcdir/dll_patch.py" "$dll_path"
+    mv "$dll_path/bakkesmod.dll" "$dll_path/bakkesmod_official.dll"
+    ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
 }
