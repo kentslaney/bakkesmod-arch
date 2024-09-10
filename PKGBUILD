@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.43
-pkgrel=3
+pkgrel=4
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -61,17 +61,13 @@ build() {
 
         int wmain(int argc, wchar_t* argv[]) {
             std::wstring ps = L"RocketLeague.exe";
-            auto official = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
-            auto promptless = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod_promptless.dll";
-            const wchar_t* launcher = official;
+            const wchar_t* launcher = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
             DllInjector dllInjector;
             bool launching = false;
             for (int i = 1; i < argc; i++) {
                 auto arg = std::wstring(argv[i]);
                 if (arg == L"launching") {
                     launching = true;
-                } else if (arg == L"promptless") {
-                    launcher = promptless;
                 }
             }
             if (launching) {
@@ -144,6 +140,8 @@ package() {
     echo "$proton_paths" > "$srcdir/runner.sh"
     # supposedly this might need to be ESYNC in some cases but this works by default
     cat <<"    EOF" >> "$srcdir/runner.sh"
+        dll=`[ "$PROMPTLESS" = 1 ] && echo "bakkesmod_promptless.dll" || echo "bakkesmod_official.dll"`
+        ln -sf "$bm_pfx/bakkesmod/dll/$dll" "$bm_pfx/bakkesmod/dll/bakkesmod.dll"
         WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
     EOF
     chmod a+x "$srcdir/runner.sh"
@@ -152,7 +150,10 @@ package() {
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
-    python "$srcdir/dll_patch.py" "$bm_pfx/bakkesmod/dll"
+    dll_path="$bm_pfx/bakkesmod/dll"
+    python "$srcdir/dll_patch.py" "$dll_path"
+    mv "$dll_path/bakkesmod.dll" "$dll_path/bakkesmod_official.dll"
+    ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
@@ -217,6 +218,7 @@ pre_remove() {
             end=`echo "$end" | awk "\$0 > $start" | head -1`
             remove_between "$start" "$end" "$conf" > "$conf"
         fi
+        if [[ -z `cat "$conf" | tr -d "\n"` ]]; then rm "$conf"; fi
     fi
     rm -fr "$bm_pfx"
 }
