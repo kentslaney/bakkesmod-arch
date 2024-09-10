@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.43
-pkgrel=5
+pkgrel=6
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -147,10 +147,11 @@ package() {
     chmod a+x "$srcdir/runner.sh"
     mkdir -p "$bm_pfx"
 
+    dll_path="$bm_pfx/bakkesmod/dll"
+    rm -f "$dll_path/bakkesmod.dll"
     unzip -quo "dll-$rlesc.zip" -d "$bm_pfx/bakkesmod"
     # by default, starts with bakkesmod.dll and outputs bakkesmod_promptless.dll
     echo -n "shunted winuser calls for DLL patch: "
-    dll_path="$bm_pfx/bakkesmod/dll"
     python "$srcdir/dll_patch.py" "$dll_path"
     mv "$dll_path/bakkesmod.dll" "$dll_path/bakkesmod_official.dll"
     ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
