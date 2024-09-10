@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
 pkgver=2.43
-pkgrel=4
+pkgrel=5
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"

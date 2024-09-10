@@ -6,8 +6,6 @@ def update(user_settings):
     dll = "bakkesmod_promptless.dll" if promptless else "bakkesmod_official.dll"
     pfx = pathlib.Path(os.environ["STEAM_COMPAT_DATA_PATH"]) / \
         pathlib.Path("pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod")
-    print(pfx)
-    return
     dll_path = pfx / "bakkesmod" / "dll"
     try:
         os.remove(dll_path / "bakkesmod.dll")
