@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
 pkgver=2.43
-pkgrel=5
+pkgrel=6
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -21,16 +21,19 @@ rlver=( 2 0 43 )
 rlstr=$(IFS=. ; echo "${rlver[*]}")
 rlesc=$(IFS=- ; echo "${rlver[*]}")
 pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
+pwsh_sum='05ea332209f52b796a78246a89757a291f254fb6'
 
 source=(
     "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
     "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
     "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/$pkgver-$pkgrel-legendary.zip"
+    "pwshwrapper-${pwsh_sum:0:7}.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/$pwsh_sum.zip"
 )
 sha256sums=(
     '3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61'
     '2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8'
     'SKIP'
+    '79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94'
 )
 
 build() {
@@ -154,6 +157,13 @@ build_version() {
     echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 }
 
+powershell() {
+    cp -rf powershell64.exe "$WINEPREFIX/drive_c/windows/system32/WindowsPowerShell/v1.0/powershell.exe"
+    cp -rf powershell32.exe "$WINEPREFIX/drive_c/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
+    "$1" 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell64_installed"'
+    "$1" 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell32_installed"'
+}
+
 package() {
     installed=`install_data`
     echo "build version string: $(build_version "$installed")"
@@ -253,6 +263,7 @@ package() {
     ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
+    ( cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" && WINEPREFIX="$pfx" powershell "wine64" ) 2> /dev/null
 }
 
 pre_remove() {
