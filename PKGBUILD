@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
 pkgver=2.43
-pkgrel=6
+pkgrel=7
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -194,6 +194,7 @@ package() {
         # heroic env variables
         import json
         if not env.is_file():
+            print("wine")
             exit(0)
         with open(env) as fp:
             opt = json.load(fp)
@@ -212,10 +213,14 @@ package() {
         if changed:
             with open(env, "w") as fp:
                 json.dump(opt, fp, indent=2)
+        try:
+            print(opt["Sugar"]["wineVersion"]["bin"])
+        except:
+            print("wine")
     EOF
     )
     cfg="$(dirname "$installed")/config.ini"
-    PFX="$bm_pfx" FP="$cfg" SUGAR_ENV="$(heroic_env)" python -c "$py"
+    wine_bin=`PFX="$bm_pfx" FP="$cfg" SUGAR_ENV="$(heroic_env)" python -c "$py"`
 
     sed "s/^ \{8\}//" <<"    EOF" > "$bm_pfx/runner.py"
         import argparse, os, shlex, pathlib
@@ -263,7 +268,10 @@ package() {
     ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
-    ( cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" && WINEPREFIX="$pfx" powershell "wine64" ) 2> /dev/null
+    (
+            cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" &&
+            LD_PRELOAD= WINEPREFIX="$pfx" powershell "$wine_bin"
+        ) 2> >(grep --color=NEVER mismatch >&2)
 }
 
 pre_remove() {
