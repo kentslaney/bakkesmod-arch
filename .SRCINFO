@@ -1,7 +1,7 @@
 pkgbase = bakkesmod-legendary
 	pkgdesc = A mod aimed at making you better at Rocket League!
-	pkgver = 2.43
-	pkgrel = 7
+	pkgver = 2.44
+	pkgrel = 1
 	url = https://bakkesmod.com/
 	arch = x86_64
 	license = GPL
@@ -12,12 +12,12 @@ pkgbase = bakkesmod-legendary
 	makedepends = mingw-w64-winpthreads
 	makedepends = python
 	makedepends = jq
-	source = dll-2-0-43.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.43/bakkesmod.zip
-	source = src-2-0-43.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.43.zip
-	source = loopback-2-43-7.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.43-7-legendary.zip
+	source = dll-2-0-44.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.44/bakkesmod.zip
+	source = src-2-0-44.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.44.zip
+	source = loopback-2-44-1.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.44-1-legendary.zip
 	source = pwshwrapper-05ea332.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/05ea332209f52b796a78246a89757a291f254fb6.zip
-	sha256sums = 3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61
-	sha256sums = 2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8
+	sha256sums = d5343ec4b68e5e1bcb66a9a7316befed862107d01ac5d5176b87ba440b751c10
+	sha256sums = 758720862fc12e1f68a20eb638aa0a2beda28aa31eae57ed7c7442dfdd9078bf
 	sha256sums = SKIP
 	sha256sums = 79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94
 
