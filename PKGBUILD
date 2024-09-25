@@ -1,7 +1,7 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
-pkgver=2.43
-pkgrel=7
+pkgver=2.44
+pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -17,7 +17,7 @@ optdepends=()
 # "https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/latest/download/BakkesMod.zip"
 # "https://api.github.com/repos/bakkesmodorg/BakkesModInjectorCpp/zipball/master"
 
-rlver=( 2 0 43 )
+rlver=( 2 0 44 )
 rlstr=$(IFS=. ; echo "${rlver[*]}")
 rlesc=$(IFS=- ; echo "${rlver[*]}")
 pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
@@ -30,8 +30,8 @@ source=(
     "pwshwrapper-${pwsh_sum:0:7}.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/$pwsh_sum.zip"
 )
 sha256sums=(
-    '3d39b07149872d891659330185ef9c4e02c580bfad67ed2df9979dbd72d4ae61'
-    '2d9cb1534fbae77ba008b07be3291d30e98a872ebfb0f0b3e6bb0c638d98bef8'
+    'd5343ec4b68e5e1bcb66a9a7316befed862107d01ac5d5176b87ba440b751c10'
+    '758720862fc12e1f68a20eb638aa0a2beda28aa31eae57ed7c7442dfdd9078bf'
     'SKIP'
     '79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94'
 )
