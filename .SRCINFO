@@ -1,7 +1,7 @@
 pkgbase = bakkesmod-legendary
 	pkgdesc = A mod aimed at making you better at Rocket League!
-	pkgver = 2.44
-	pkgrel = 1
+	pkgver = 2.45
+	pkgrel = 2
 	url = https://bakkesmod.com/
 	arch = x86_64
 	license = GPL
@@ -14,10 +14,10 @@ pkgbase = bakkesmod-legendary
 	makedepends = jq
 	source = dll-2-0-45.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.45/bakkesmod.zip
 	source = src-2-0-45.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.45.zip
-	source = loopback-2-44-1.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.44-1-legendary.zip
+	source = loopback-2-45-2.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.45-2-legendary.zip
 	source = pwshwrapper-05ea332.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/05ea332209f52b796a78246a89757a291f254fb6.zip
 	sha256sums = cd6215fdc53a5a8c32edb6642b60d168905ad229de6db3c7ccbdc701f28ee99a
-	sha256sums = f35ab1bd87b39ffa388961fb296bf385bfdb871fbd03566f673b0b826fa10a41
+	sha256sums = e18217a9532c05179d4b168ef8fdc18873c52f76be25ff00074350082c5a1bf3
 	sha256sums = SKIP
 	sha256sums = 79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94
 
