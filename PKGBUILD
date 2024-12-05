@@ -2,7 +2,7 @@
 pkgname=bakkesmod-legendary
 rlver=( 2 0 46 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -268,10 +268,14 @@ package() {
     ln -sf "$dll_path/bakkesmod_official.dll" "$dll_path/bakkesmod.dll"
 
     cp -f "$srcdir/inject.exe" "$bm_pfx"
-    (
+    if [ -f "$pfx/drive_c/Program Files/PowerShell/7/pwsh.exe" ]; then
+        echo "skipping powershell installation in favor of existing pwsh.exe"
+    else
+        (
             cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" &&
             LD_PRELOAD= WINEPREFIX="$pfx" powershell "$wine_bin"
         ) 2> >(grep --color=NEVER mismatch >&2)
+    fi
 }
 
 pre_remove() {
