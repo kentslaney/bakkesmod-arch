@@ -2,7 +2,7 @@
 pkgname=bakkesmod-steam
 rlver=( 2 0 46 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -207,7 +207,11 @@ package() {
     elif ! grep "### \+$sig" "$conf" > /dev/null; then
         cp "$delimited" "$conf"
     fi
-    ( cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" && WINEPREFIX="$compat/pfx/" powershell "$proton/bin/wine64") 2> /dev/null
+    if [ -f "$compat/pfx/drive_c/Program Files/PowerShell/7/pwsh.exe" ]; then
+        echo "skipping powershell installation in favor of existing pwsh.exe"
+    else
+        ( cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" && WINEPREFIX="$compat/pfx/" powershell "$proton/bin/wine64") 2> /dev/null
+    fi
     echo "to finish installing, update your launch options by prepending \"BAKKES=1\" or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
     echo "to inject the bakkesmod DLL without the message box about version verification, also prepend \"PROMPTLESS=1\""
     echo "the launch option is tied to the proton installation, so you will need to reinstall if you switch versions"

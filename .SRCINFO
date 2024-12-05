@@ -1,7 +1,7 @@
 pkgbase = bakkesmod-steam
 	pkgdesc = A mod aimed at making you better at Rocket League!
 	pkgver = 2.46
-	pkgrel = 1
+	pkgrel = 2
 	url = https://bakkesmod.com/
 	arch = x86_64
 	license = GPL
@@ -13,7 +13,7 @@ pkgbase = bakkesmod-steam
 	makedepends = python
 	source = dll-2-0-46.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/2.0.46/bakkesmod.zip
 	source = src-2-0-46.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/2.0.46.zip
-	source = loopback-2-46-1.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.46-1-steam.zip
+	source = loopback-2-46-2.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/2.46-2-steam.zip
 	source = pwshwrapper-05ea332.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/05ea332209f52b796a78246a89757a291f254fb6.zip
 	sha256sums = 91b29db21ab9e53de69ea8b922de3885f5617efb1500ef14c2e4d653a0173e65
 	sha256sums = f48907b738f09cece6a738a4c932c5c86e9d3a14e4c12e5f87842b4529d4500a
