@@ -198,7 +198,8 @@ package() {
             exit(0)
         with open(env) as fp:
             opt = json.load(fp)
-        environ = opt["Sugar"]["enviromentOptions"]
+        environ = opt.get("Sugar", {}).get("enviromentOptions", [])
+        opt["Sugar"] = {**opt.get("Sugar", {}), "enviromentOptions": environ}
         preset = [i["key"] for i in environ]
         changed = False
         for var in ("BAKKES", "PROMPTLESS"):
