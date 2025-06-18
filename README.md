@@ -1,4 +1,7 @@
 # BakkesMod for (Arch) Linux and Steam Deck
+> [!WARNING]
+> EGS support is currently broken. Tracked in [issue #5](https://github.com/kentslaney/bakkesmod-arch/issues/5).
+
 TL;DR: [AUR for steam](https://aur.archlinux.org/packages/bakkesmod-steam), [AUR for Heroic/Legendary](https://aur.archlinux.org/packages/bakkesmod-legendary)
 ## Supported Environments
 There are two versions of the Rocket League: Steam and Epic Games Store (EGS). The EGS version is the only one available going forwards and support for that version is primarily built around the [Heroic Launcher](https://heroicgameslauncher.com/) ([GitHub](https://github.com/Heroic-Games-Launcher)). Heroic Launcher supports EGS games through a CLI tool called [Legendary](https://github.com/derrod/legendary) (which is why the AUR is called `bakkesmod-legendary`), but Heroic Launcher's settings will be updated as well if it's installed.
@@ -24,6 +27,9 @@ It may be easier to attach a keyboard to type these out or copy/paste from here.
 ## Platforms
 In order to disable BakkesMod, set the `BAKKES` enviornment variable to `0`. If you have the EGS version, continue reading. Otherwise, skip to the [Steam section](#steam).
 ## EGS (Heroic/Legendary)
+> [!WARNING]
+> EGS support is currently broken. Tracked in [issue #5](https://github.com/kentslaney/bakkesmod-arch/issues/5).
+
 Install the package with
 ```bash
 yay -S bakkesmod-legendary
