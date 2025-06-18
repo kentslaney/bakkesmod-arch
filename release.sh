@@ -10,26 +10,26 @@ tmp_legendary=`echo "$legendary" | tail -2 | head -1`
 ver_legendary=`echo "$legendary" | tail -1`
 
 cd "$tmp_steam"
-git commit -Am "$ver_steam"
+git commit -am "$ver_steam"
 git tag "$ver_steam-1-steam"
-git remote set-url downstream ssh://aur@aur.archlinux.org/bakkesmod-steam.git
+git remote add downstream ssh://aur@aur.archlinux.org/bakkesmod-steam.git
 
 echo ""
 echo "steam: $tmp_steam"
-git diff HEAD~1
-git log | head
+git --no-pager diff HEAD~1
+git log --decorate | head
 git remote -v
 echo ""
 
 cd "$tmp_legendary"
-git commit -Am "$ver_legendary"
+git commit -am "$ver_legendary"
 git tag "$ver_legendary-1-legendary"
-git remote set-url downstream ssh://aur@aur.archlinux.org/bakkesmod-legendary.git
+git remote add downstream ssh://aur@aur.archlinux.org/bakkesmod-legendary.git
 
 echo ""
 echo "legendary: $tmp_legendary"
-git diff HEAD~1
-git log | head
+git --no-pager diff HEAD~1
+git log --decorate | head
 git remote -v
 echo ""
 
