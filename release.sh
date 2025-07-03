@@ -11,7 +11,7 @@ ver_legendary=`echo "$legendary" | tail -1`
 
 cd "$tmp_steam"
 git commit -am "$ver_steam"
-git tag "$ver_steam-1-steam"
+git tag "$ver_steam-steam"
 git remote add downstream ssh://aur@aur.archlinux.org/bakkesmod-steam.git
 
 echo ""
@@ -23,7 +23,7 @@ echo ""
 
 cd "$tmp_legendary"
 git commit -am "$ver_legendary"
-git tag "$ver_legendary-1-legendary"
+git tag "$ver_legendary-legendary"
 git remote add downstream ssh://aur@aur.archlinux.org/bakkesmod-legendary.git
 
 echo ""

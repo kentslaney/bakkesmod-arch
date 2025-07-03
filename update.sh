@@ -11,8 +11,9 @@ curl -LO "$dll"
 curl -LO "$src"
 git clone "$loopback"
 
-rlver=`echo "$rlstr" | sed "s%\.% %g"`
-pkgver=`echo "$rlstr" | sed "s%\..*\.%.%g"`
+rlver=($(echo "$rlstr" | sed "s%\.% %g"))
+pkgver="${rlver[0]}.${rlver[2]}"
+pkgrel="${rlver[3]:-1}"
 dll_sum=`sha256sum BakkesMod.zip | sed "s% *[^ ]*$%%"`
 src_sum=`sha256sum "$rlstr.zip" | sed "s% *[^ ]*$%%"`
 
@@ -31,9 +32,9 @@ done
 
 sed -i "${dll_idx}s/\( *\)'[^']*'/\1'$dll_sum'/" PKGBUILD
 sed -i "${src_idx}s/\( *\)'[^']*'/\1'$src_sum'/" PKGBUILD
-sed -i "s/rlver=( .* )/rlver=( $rlver )/" PKGBUILD
-sed -i "s/pkgrel=.*/pkgrel=1/" PKGBUILD
+sed -i "s/rlver=( .* )/rlver=( ${rlver[*]} )/" PKGBUILD
+sed -i "s/pkgrel=.*/pkgrel=$pkgrel/" PKGBUILD
 makepkg --printsrcinfo > .SRCINFO
 pwd
-echo "$pkgver"
+echo "$pkgver-$pkgrel"
 
