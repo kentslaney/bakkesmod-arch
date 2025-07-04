@@ -2,7 +2,7 @@
 pkgname=bakkesmod-steam
 rlver=( 2 0 53 2 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -117,7 +117,7 @@ proton_paths=$(cat <<'EOF'
         echo "could not find steam's proton config for Rocket League" >&2
         exit 1
     fi
-    proton=`sed -n 4p "$compat/config_info" | xargs -d '\n' dirname`
+    proton=`sed -n 3p "$compat/config_info" | xargs -d '\n' dirname`
     bm_pfx="$compat/pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod"
 EOF
 )
