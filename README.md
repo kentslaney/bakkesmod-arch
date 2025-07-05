@@ -10,23 +10,12 @@ This guide is built for Arch or its derivative SteamOS, which runs on the Steam 
 ## Steam Deck Prep
 The SteamOS file system is read-only by default and is re-imaged on SteamOS upgrade. This means that you will have to repeat this process when Rocket League (and therefore BakkesMod) updates, if there has been a system update since you last installed it. Steam system updates will not affect the existing BakkesMod installation. There is an alternative method for the Steam Deck without some of these problems in the [cross-platform instructions](https://github.com/CrumblyLiquid/BakkesLinux/blob/master/README.md).
 
-Switch to [Desktop mode](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C), open [Konsole](https://en.wikipedia.org/wiki/Konsole)
+Switch to [Desktop mode](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C) then open [Konsole](https://en.wikipedia.org/wiki/Konsole).
 ![The Konsole application on SteamOS desktop mode](/../docs/konsole.png)
-Then run the following commands ([source](https://github.com/Jguer/yay/issues/2098#issuecomment-1505042709))
+Don't do anything in this app with untrusted sources. [tinyurl.com/yay-steam](https://tinyurl.com/yay-steam) links to [`yay-steam.sh`](https://raw.githubusercontent.com/kentslaney/bakkesmod-arch/refs/heads/master/yay-steam.sh) in this repo and won't change/expire. Enter and run the following:
 ```bash
-sudo steamos-readonly disable
-sudo pacman-key --init
-sudo pacman-key --populate archlinux holo
-sudo pacman -S git base-devel
-git clone https://aur.archlinux.org/yay-bin.git
-cd yay-bin
-makepkg -si
+curl -L tinyurl.com/yay-steam | sh
 ```
-In versions of SteamOS that ship with `pacman=6.1` (see `pacman --version`), you'll have to use a backwards compatible version of `yay`. Before running `makepkg`, run
-```bash
-git checkout 96f9018
-```
-It may be easier to attach a keyboard to type these out or copy/paste from here.
 ## Platforms
 In order to disable BakkesMod, set the `BAKKES` enviornment variable to `0`. If you have the EGS version, continue reading. Otherwise, skip to the [Steam section](#steam).
 ## EGS (Heroic/Legendary)
