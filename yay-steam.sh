@@ -5,4 +5,4 @@ sudo pacman --noconfirm -S git base-devel
 [ ! -d yay-bin ] && git clone https://aur.archlinux.org/yay-bin.git
 cd yay-bin
 git pull
-makepkg -si
+makepkg --noconfirm -si

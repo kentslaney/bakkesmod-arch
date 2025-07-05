@@ -12,7 +12,7 @@ The SteamOS file system is read-only by default and is re-imaged on SteamOS upgr
 
 Switch to [Desktop mode](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C) then open [Konsole](https://en.wikipedia.org/wiki/Konsole).
 ![The Konsole application on SteamOS desktop mode](/../docs/konsole.png)
-Don't do anything in this app with untrusted sources. [tinyurl.com/yay-steam](https://tinyurl.com/yay-steam) links to [`yay-steam.sh`](https://raw.githubusercontent.com/kentslaney/bakkesmod-arch/refs/heads/master/yay-steam.sh) in this repo and won't change/expire. Enter and run the following:
+Don't do anything in this app with untrusted sources. [tinyurl.com/yay-steam](https://tinyurl.com/yay-steam) links to [`yay-steam.sh`](https://raw.githubusercontent.com/kentslaney/bakkesmod-arch/refs/heads/master/yay-steam.sh) in this repo. TinyURLs are changable, so this is still bad practice. Enter and run the following:
 ```bash
 curl -L tinyurl.com/yay-steam | sh
 ```
