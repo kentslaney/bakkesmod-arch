@@ -20,8 +20,11 @@ sudo pacman-key --populate archlinux holo
 sudo pacman -S git base-devel
 git clone https://aur.archlinux.org/yay-bin.git
 cd yay-bin
-git checkout 96f9018
 makepkg -si
+```
+In versions of SteamOS that ship with `pacman=6.1` (see `pacman --version`), you'll have to use a backwards compatible version of `yay`. Before running `makepkg`, run
+```bash
+git checkout 96f9018
 ```
 It may be easier to attach a keyboard to type these out or copy/paste from here.
 ## Platforms
