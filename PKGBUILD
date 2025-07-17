@@ -109,7 +109,8 @@ build() {
         "$srcdir/main.cpp" -o "$srcdir/inject.exe"
 }
 
-# 4th line of config_info contains the selected proton launcher's path
+# 3rd line of config_info contains the selected proton launcher's path
+# https://github.com/ValveSoftware/Proton/blob/3a269ab9966409b968c8bc8f3e68bd0d2f42aadf/proton#L996-L1009
 proton_paths=$(cat <<'EOF'
     steamapps="$HOME/.steam/steam/steamapps"
     compat="$steamapps/compatdata/252950"
