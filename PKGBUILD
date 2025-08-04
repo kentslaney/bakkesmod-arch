@@ -2,14 +2,14 @@
 pkgname=bakkesmod-steam
 rlver=( 2 0 54 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python')
+makedepends=('python')
 optdepends=()
 
 # versionless URLs and official repo backups
