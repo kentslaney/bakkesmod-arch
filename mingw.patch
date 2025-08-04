@@ -1,0 +1,59 @@
+diff --git a/BakkesModInjectorC++/DllInjector.cpp b/BakkesModInjectorC++/DllInjector.cpp
+index 1a5bf75..d578fdf 100644
+--- a/BakkesModInjectorC++/DllInjector.cpp
++++ b/BakkesModInjectorC++/DllInjector.cpp
+@@ -48,7 +48,7 @@ void DllInjector::SetInjectionParameters(InjectionParameters ip)
+ }
+ 
+ 
+-DWORD DllInjector::InjectDLL(std::wstring processName, std::filesystem::path path)
++DWORD DllInjector::InjectDLL(std::wstring processName, const wchar_t* path)
+ {
+ 	DWORD processID = GetProcessID64(processName);
+ 	if (processID == 0)
+@@ -58,7 +58,7 @@ DWORD DllInjector::InjectDLL(std::wstring processName, std::filesystem::path pat
+ 	if (h)
+ 	{
+ 		LPVOID LoadLibAddr = (LPVOID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "LoadLibraryW");
+-		auto ws = path.wstring().c_str();
++		auto ws = path;
+ 		auto wslen = (std::wcslen(ws) + 1) * sizeof(WCHAR);
+ 		LPVOID dereercomp = VirtualAllocEx(h, NULL, wslen, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+ 		WriteProcessMemory(h, dereercomp, ws, wslen, NULL);
+diff --git a/BakkesModInjectorC++/DllInjector.h b/BakkesModInjectorC++/DllInjector.h
+index 205f670..7a24705 100644
+--- a/BakkesModInjectorC++/DllInjector.h
++++ b/BakkesModInjectorC++/DllInjector.h
+@@ -31,7 +31,7 @@ public:
+ 	~DllInjector();
+ 	InjectionParameters* GetInjectionParameters();
+ 	void SetInjectionParameters(InjectionParameters ip);
+-	DWORD InjectDLL(std::wstring processName, std::filesystem::path path);
++	DWORD InjectDLL(std::wstring processName, const wchar_t* path);
+ 	DWORD GetProcessID64(std::wstring processName);
+ 	std::vector<DWORD> GetProcessIDS(std::wstring processName);
+ 	DWORD IsBakkesModDllInjected(std::wstring processName);
+diff --git a/BakkesModInjectorC++/WindowsUtils.cpp b/BakkesModInjectorC++/WindowsUtils.cpp
+index 3cc04c2..12eebd4 100644
+--- a/BakkesModInjectorC++/WindowsUtils.cpp
++++ b/BakkesModInjectorC++/WindowsUtils.cpp
+@@ -20,8 +20,7 @@ WindowsUtils::~WindowsUtils()
+ {
+ }
+ 
+-std::string WindowsUtils::GetMyDocumentsFolder()
+-{
++std::string WindowsUtils::GetMyDocumentsFolder() { return "C:\\users\\steamuser\\Documents";
+ 	LPWSTR wszPath = NULL;
+ 	HRESULT hr;
+ 
+diff --git a/BakkesModInjectorC++/WindowsUtils.h b/BakkesModInjectorC++/WindowsUtils.h
+index 47458b2..1daddd0 100644
+--- a/BakkesModInjectorC++/WindowsUtils.h
++++ b/BakkesModInjectorC++/WindowsUtils.h
+@@ -1,4 +1,5 @@
+ #pragma once
++#include <algorithm>
+ #include <string>
+ #include <windows.h>
+ #include <filesystem>
