@@ -23,6 +23,7 @@ To make the launcher accessable directly from gaming mode, open Steam's desktop 
 ![Steam GUI in desktop mode via icon shortcut](/../docs/desktop.png)
 Add Heroic as a Non-Steam game via the bottom left menu
 ![Add Heroic Launcher to Gaming Mode](/../docs/non-steam.png)
+You may also want to check "Add games to Steam automatically" in settings to make the games more directly accessable.
 
 ### Install Yay (BakkesMod)
 Open [Konsole](https://en.wikipedia.org/wiki/Konsole).
