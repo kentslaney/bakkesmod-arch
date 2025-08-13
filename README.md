@@ -1,7 +1,4 @@
 # BakkesMod for (Arch) Linux and Steam Deck
-> [!WARNING]
-> EGS support is currently broken. Tracked in [issue #5](https://github.com/kentslaney/bakkesmod-arch/issues/5).
-
 TL;DR: [AUR for steam](https://aur.archlinux.org/packages/bakkesmod-steam), [AUR for Heroic/Legendary](https://aur.archlinux.org/packages/bakkesmod-legendary)
 
 ## Supported Environments
@@ -63,9 +60,6 @@ BAKKES=1 PROMPTLESS=1 PROTON_LOG=1 WINEDEBUG=trace-unwind,warn+seh gamemoderun %
 ```
 
 ## EGS (Heroic/Legendary)
-> [!WARNING]
-> EGS support is currently broken. Tracked in [issue #5](https://github.com/kentslaney/bakkesmod-arch/issues/5).
-
 Install the package with
 ```bash
 yay -S bakkesmod-legendary
