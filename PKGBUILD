@@ -2,7 +2,7 @@
 pkgname=bakkesmod-legendary
 rlver=( 2 0 54 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -124,6 +124,10 @@ heroic_prefixes=(
     "$HOME/.config/heroic/GamesConfig/Sugar.json"
     "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/GamesConfig/Sugar.json"
 )
+heroic_global=(
+    "$HOME/.config/heroic/config.json"
+    "$HOME/.var/app/com.heroicgameslauncher.hgl/config/heroic/config.json"
+)
 wine_bm_path="drive_c/users/steamuser/AppData/Roaming/bakkesmod"
 
 installed_version() {
@@ -156,6 +160,15 @@ heroic_env() {
     done
 }
 
+heroic_config() {
+    for fp in "${heroic_global[@]}"; do
+        if [ -f "$fp" ]; then
+            jq -er .defaultSettings.defaultSteamPath < "$fp"
+            return 0
+        fi
+    done
+}
+
 build_version() {
     RL_version="$(installed_version "$1")"
     echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
@@ -164,8 +177,8 @@ build_version() {
 powershell() {
     cp -rf powershell64.exe "$WINEPREFIX/drive_c/windows/system32/WindowsPowerShell/v1.0/powershell.exe"
     cp -rf powershell32.exe "$WINEPREFIX/drive_c/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
-    "$1" 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell64_installed"'
-    "$1" 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell32_installed"'
+    eval "$1 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo \"powershell64_installed\"'"
+    eval "$1 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo \"powershell32_installed\"'"
 }
 
 package() {
@@ -173,6 +186,8 @@ package() {
     echo "build version string: $(build_version "$installed")"
 
     pfx=`wine_pfx "$installed"`
+    pfx0="$pfx"
+    if [ ! -a "$pfx/user.reg" ]; then pfx="$pfx/pfx"; fi # proton specific (?)
     user=`grep '^"USERNAME"="' "$pfx/user.reg" | sed "s/^[^=]*=\"\|\"$//g"`
     # creates broken (ignored) symlink if $user == "steamuser"
     ( cd "$pfx/drive_c/users" && ln -sf "$user" "steamuser" )
@@ -219,7 +234,10 @@ package() {
             with open(env, "w") as fp:
                 json.dump(opt, fp, indent=2)
         try:
-            print(opt["Sugar"]["wineVersion"]["bin"])
+            cmd = [opt["Sugar"]["wineVersion"]["bin"]]
+            if opt["Sugar"]["wineVersion"]["type"] == "proton":
+                cmd.append("run")
+            print(shlex.join(cmd))
         except:
             print("wine")
     EOF
@@ -276,10 +294,11 @@ package() {
     if [ -f "$pfx/drive_c/Program Files/PowerShell/7/pwsh.exe" ]; then
         echo "skipping powershell installation in favor of existing pwsh.exe"
     else
-        (
+        # somewhere upstream has a non-checksumed file version
+        #(
             cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" &&
-            LD_PRELOAD= WINEPREFIX="$pfx" powershell "$wine_bin"
-        ) 2> >(grep --color=NEVER mismatch >&2)
+            LD_PRELOAD= WINEPREFIX="$pfx" STEAM_COMPAT_DATA_PATH="$pfx0" STEAM_COMPAT_CLIENT_INSTALL_PATH="$(heroic_config)" powershell "$wine_bin"
+        #) 2> >(grep --color=NEVER mismatch >&2)
     fi
 }
 
