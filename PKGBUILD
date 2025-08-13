@@ -2,7 +2,7 @@
 pkgname=bakkesmod-legendary
 rlver=( 2 0 54 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=3
+pkgrel=4
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -187,7 +187,7 @@ package() {
 
     pfx=`wine_pfx "$installed"`
     pfx0="$pfx"
-    if [ ! -a "$pfx/user.reg" ]; then pfx="$pfx/pfx"; fi # proton specific (?)
+    if ! [ -a "$pfx/user.reg" ]; then pfx="$pfx/pfx"; fi # proton specific (?)
     user=`grep '^"USERNAME"="' "$pfx/user.reg" | sed "s/^[^=]*=\"\|\"$//g"`
     # creates broken (ignored) symlink if $user == "steamuser"
     ( cd "$pfx/drive_c/users" && ln -sf "$user" "steamuser" )
