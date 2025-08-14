@@ -1,7 +1,4 @@
 # BakkesMod for (Arch) Linux and Steam Deck
-> [!WARNING]
-> EGS support for SteamOS is currently broken. Tracked in [issue #1](https://github.com/kentslaney/bakkesmod-arch/issues/1).
-
 TL;DR: [AUR for steam](https://aur.archlinux.org/packages/bakkesmod-steam), [AUR for Heroic/Legendary](https://aur.archlinux.org/packages/bakkesmod-legendary)
 
 ## Supported Environments
@@ -24,6 +21,12 @@ To make the launcher accessable directly from gaming mode, open Steam's desktop 
 Add Heroic as a Non-Steam game via the bottom left menu
 ![Add Heroic Launcher to Gaming Mode](/../docs/non-steam.png)
 You may also want to check "Add games to Steam automatically" in settings to make the games more directly accessable.
+
+### Switch from Proton to Wine (EGS & bakkesmod on SteamOS)
+This step can be done after running the command to install via `yay`, but the game has to have been downloaded and run at least once for the install to work. Proton-GE (Heroic's default) is currently unsupported, so, in Heroic, go to Wine Manager and download Wine-GE latest
+![Heroic's Wine Manager screen for Wine-GE](/../docs/manager.png)
+then switch Rocket League's Wine version to Wine-GE
+![Wine version selection on Rocket League's settings page in Heroic](/../docs/wine-select.png)
 
 ### Install Yay (BakkesMod)
 Open [Konsole](https://en.wikipedia.org/wiki/Konsole).
@@ -63,9 +66,6 @@ BAKKES=1 PROMPTLESS=1 PROTON_LOG=1 WINEDEBUG=trace-unwind,warn+seh gamemoderun %
 ```
 
 ## EGS (Heroic/Legendary)
-> [!WARNING]
-> EGS support for SteamOS is currently broken. Tracked in [issue #1](https://github.com/kentslaney/bakkesmod-arch/issues/1).
-
 Install the package with
 ```bash
 yay -S bakkesmod-legendary
