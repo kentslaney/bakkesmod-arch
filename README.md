@@ -24,9 +24,9 @@ You may also want to check "Add games to Steam automatically" in settings to mak
 
 ### Switch from Proton to Wine (EGS & bakkesmod on SteamOS)
 This step can be done after running the command to install via `yay`, but the game has to have been downloaded and run at least once for the install to work. Proton-GE (Heroic's default) is currently unsupported, so, in Heroic, go to Wine Manager and download Wine-GE latest
-![Heroic's Wine Manager screen for Wine-GE](/../docs/manager.png)
+![Heroic's Wine Manager screen for Wine-GE](/../docs/manager.jpg)
 then switch Rocket League's Wine version to Wine-GE
-![Wine version selection on Rocket League's settings page in Heroic](/../docs/wine-select.png)
+![Wine version selection on Rocket League's settings page in Heroic](/../docs/wine-select.jpg)
 
 ### Install Yay (BakkesMod)
 Open [Konsole](https://en.wikipedia.org/wiki/Konsole).
