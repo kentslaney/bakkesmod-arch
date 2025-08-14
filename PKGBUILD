@@ -195,7 +195,7 @@ package() {
     bm_pfx="$pfx/$wine_bm_path"
     mkdir -p "$bm_pfx"
     py=$(sed "s/^ \{8\}//" <<"    EOF"
-        import os, pathlib
+        import os, pathlib, sys
         f, pfx, env = (pathlib.Path(os.environ[i]) for i in ("FP", "PFX", "SUGAR_ENV"))
 
         # legendary launch command
@@ -229,7 +229,7 @@ package() {
                 last = len(preset) - 1 - list(reversed(preset)).index(var)
                 initial = environ[last]["value"]
                 if initial != "1":
-                    print(f"warning: Heroic flag {var} is set to {initial}")
+                    print(f"warning: Heroic flag {var} is set to {initial}", file=sys.stderr)
         if changed:
             with open(env, "w") as fp:
                 json.dump(opt, fp, indent=2)
