@@ -62,7 +62,7 @@ BAKKES=1 PROMPTLESS=1 %command%
 ```
 My personal `Launch Options` on desktop are
 ```bash
-BAKKES=1 PROMPTLESS=1 PROTON_LOG=1 WINEDEBUG=trace-unwind,warn+seh gamemoderun %command% -NoKeyboardUI
+BAKKES=1 PROMPTLESS=1 PROTON_LOG=1 WINEDEBUG=trace-unwind,warn+seh gamemoderun %command% -NoKeyboardUI -nomovie
 ```
 
 ## EGS (Heroic/Legendary)
