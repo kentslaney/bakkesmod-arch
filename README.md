@@ -39,7 +39,7 @@ curl -L tinyurl.com/yay-steam | sh
 ## Platforms
 In order to disable BakkesMod, set the `BAKKES` enviornment variable to `0`. If you have the Steam version, continue reading. Otherwise, skip to the [EGS section](#egs-heroiclegendary).
 
-## Steam
+### Steam
 Install the package with
 ```bash
 yay -S bakkesmod-steam
@@ -65,7 +65,7 @@ My personal `Launch Options` on desktop are
 BAKKES=1 PROMPTLESS=1 PROTON_LOG=1 WINEDEBUG=trace-unwind,warn+seh gamemoderun %command% -NoKeyboardUI -nomovie
 ```
 
-## EGS (Heroic/Legendary)
+### EGS (Heroic/Legendary)
 Install the package with
 ```bash
 yay -S bakkesmod-legendary
@@ -81,3 +81,6 @@ go to the advanced tab
 and scroll down to the `Environment Variables` section
 
 ![The environment variables section](/../docs/env.png)
+
+## Disk recommendations
+If you're running arch on desktop, LVM2 makes the filesystem management easier. If you're using the defaults on desktop, full disk encryption is also recommended, especially if advertising "arch btw".
