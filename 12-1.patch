@@ -1,0 +1,15 @@
+diff --git a/BakkesModInjectorC++/DllInjector.cpp b/BakkesModInjectorC++/DllInjector.cpp
+index 1a5bf75..d124f22 100644
+--- a/BakkesModInjectorC++/DllInjector.cpp
++++ b/BakkesModInjectorC++/DllInjector.cpp
+@@ -66,8 +66,9 @@ DWORD DllInjector::InjectDLL(std::wstring processName, std::filesystem::path pat
+ 		WaitForSingleObject(asdc, INFINITE);
+ 		DWORD res = 0;
+ 		GetExitCodeThread(asdc, &res);
++		DWORD err = GetLastError();
+ 		LOG_LINE(INFO, "GetExitCodeThread(): " << (int)res);
+-			LOG_LINE(INFO, "Last error: " << GetLastError());
++		LOG_LINE(INFO, "Last error: " << (int)err);
+ 		VirtualFreeEx(h, dereercomp, wslen, MEM_RELEASE);
+ 		CloseHandle(asdc);
+ 		CloseHandle(h);

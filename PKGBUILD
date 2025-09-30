@@ -9,7 +9,7 @@ url="https://bakkesmod.com/"
 license=('GPL')
 groups=()
 depends=()
-makedepends=('python' 'jq')
+makedepends=('mingw-w64-binutils' 'mingw-w64-crt' 'mingw-w64-gcc' 'mingw-w64-headers' 'mingw-w64-winpthreads' 'python' 'jq')
 optdepends=()
 
 # versionless URLs and official repo backups
@@ -46,9 +46,9 @@ build() {
     unzip -qd "$tmp" "$srcdir/loopback-$pkgesc-$pkgrel.zip"
     mv "$tmp"/*/* "$srcdir"
     rm -fr "$tmp"/* "$tmp"
-}
 
-compile() {
+    git apply --directory="$ref" 12-1.patch
+
     # MinGW and VS header disagreement
     patches="$srcdir/include"
     mkdir -p "$patches"
