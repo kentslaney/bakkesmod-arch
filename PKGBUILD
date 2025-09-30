@@ -26,15 +26,13 @@ pwsh_sum='05ea332209f52b796a78246a89757a291f254fb6'
 source=(
     "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
     "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
-    "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/$pkgver-$pkgrel-legendary.zip"
-    "https://github.com/kentslaney/bakkesmod-arch/releases/download/c369f24-1/inject.exe"
+    "loopback-issue-12-1.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/heads/legendary-12-1.zip"
     "pwshwrapper-${pwsh_sum:0:7}.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/$pwsh_sum.zip"
 )
 sha256sums=(
     '0c552db8de5e3d5ec0514d3e6b8e0e7e44212ef670adab88ec14ac4412b32c53'
     '0adb6eaf17137909db9be250d330b571f69c33cfa02b7ee2d24d275e7b64f397'
     'SKIP'
-    '0e038a4f0a2799f6aaa34f6560f5d1d41fba0cf26f8814571cebc94f5bb67a6e'
     '79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94'
 )
 
@@ -47,7 +45,7 @@ build() {
     mv "$tmp"/*/* "$srcdir"
     rm -fr "$tmp"/* "$tmp"
 
-    git apply --directory="$ref" 12-1.patch
+    patch --directory="$ref" -p1 -i "$srcdir/12-1.patch"
 
     # MinGW and VS header disagreement
     patches="$srcdir/include"
