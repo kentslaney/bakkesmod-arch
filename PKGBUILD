@@ -1,6 +1,6 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-steam
-rlver=( 2 0 56 )
+rlver=( 2 0 58 )
 pkgver="${rlver[0]}.${rlver[2]}"
 pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
@@ -31,8 +31,8 @@ source=(
     "pwshwrapper-${pwsh_sum:0:7}.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/$pwsh_sum.zip"
 )
 sha256sums=(
-    '0c552db8de5e3d5ec0514d3e6b8e0e7e44212ef670adab88ec14ac4412b32c53'
-    '0adb6eaf17137909db9be250d330b571f69c33cfa02b7ee2d24d275e7b64f397'
+    '4184981c03f1d2df6458844c676d0fd7bf09d69d8d1894051f98c1638fc0609b'
+    '99d1c6dfa5ec37113fc1ed4f1763c45aacd93981ffeefe6828330d234ff2a87b'
     'SKIP'
     '0e038a4f0a2799f6aaa34f6560f5d1d41fba0cf26f8814571cebc94f5bb67a6e'
     '79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94'
