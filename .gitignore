@@ -6,4 +6,5 @@
 *.exe
 *.tar.*
 /build
+/dist
 

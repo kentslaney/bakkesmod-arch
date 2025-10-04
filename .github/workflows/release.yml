@@ -15,8 +15,7 @@ jobs:
     - name: Store dists
       uses: actions/upload-artifact@v4
       with:
-        name: steam-injector-bin
-        path: build/inject.exe
+        path: dist
 
   github-release:
     name: Publish GitHub release
