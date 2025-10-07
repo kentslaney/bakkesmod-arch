@@ -1,0 +1,37 @@
+diff --git a/main.c b/main.c
+index 596f259..5222ad8 100644
+--- a/main.c
++++ b/main.c
+@@ -81,7 +81,7 @@ int mainCRTStartup(void)
+     {    
+         ExpandEnvironmentStringsW( L"%TMP%\\PowerShell-7.4.1-win-x64.msi", bufW, MAX_PATH + 1 );
+         fputws(L"\033[1;33mDownloading Powershell Core",stderr);fputws(L"\033[0m\n",stderr);
+-        if( URLDownloadToFileW( NULL, L"https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.msi", bufW, 0, NULL ) != S_OK )
++        if( URLDownloadToFileW( NULL, L"http://127.0.0.1:00000?pad=&url=https%3A%2F%2Fgithub.com%2FPowerShell%2FPowerShell%2Freleases%2Fdownload%2Fv7.4.1%2FPowerShell-7.4.1-win-x64.msi", bufW, 0, NULL ) != S_OK )
+             { fputs("download failed",stderr ); exit(1); }
+    
+         memset( &si, 0, sizeof( STARTUPINFO )); si.cb = sizeof( STARTUPINFO ); memset( &pi, 0, sizeof( PROCESS_INFORMATION ));
+@@ -91,12 +91,12 @@ int mainCRTStartup(void)
+             
+         ExpandEnvironmentStringsW( L"%TMP%\\ConEmuPack.230724.7z", bufW, MAX_PATH + 1 );
+         fputws(L"\033[1;33mDownloading ConEmu",stderr);fputws(L"\033[0m\n",stderr);
+-        if( URLDownloadToFileW( NULL, L"https://github.com/Maximus5/ConEmu/releases/download/v23.07.24/ConEmuPack.230724.7z", bufW, 0, NULL ) != S_OK )
++        if( URLDownloadToFileW( NULL, L"http://127.0.0.1:00000?pad=&url=https%3A%2F%2Fgithub.com%2FMaximus5%2FConEmu%2Freleases%2Fdownload%2Fv23.07.24%2FConEmuPack.230724.7z", bufW, 0, NULL ) != S_OK )
+             { fputs("download failed",stderr ); exit(1); }         
+ 
+         ExpandEnvironmentStringsW( L"%TMP%\\7zr.exe", bufW, MAX_PATH + 1 );
+         fputws(L"\033[1;33mDownloading 7zr",stderr);fputws(L"\033[0m\n",stderr);
+-        if( URLDownloadToFileW( NULL, L"https://www.7-zip.org/a/7zr.exe", bufW, 0, NULL ) != S_OK ) 
++        if( URLDownloadToFileW( NULL, L"http://127.0.0.1:00000?pad=&url=https%3A%2F%2Fwww.7-zip.org%2Fa%2F7zr.exe", bufW, 0, NULL ) != S_OK )
+             { fputs("download failed",stderr ); exit(1); }  
+ 
+         memset( &si, 0, sizeof( STARTUPINFO ) ); si.cb = sizeof( STARTUPINFO ); memset( &pi , 0, sizeof( PROCESS_INFORMATION ) );
+@@ -106,7 +106,7 @@ int mainCRTStartup(void)
+       
+         fputws(L"\033[1;33mDownloading profile.ps1",stderr);fputws(L"\033[0m\n",stderr);
+         ExpandEnvironmentStringsW( L"%ProgramW6432%\\Powershell\\7\\profile.ps1", bufW, MAX_PATH + 1 );
+-        if( URLDownloadToFileW(NULL, L"https://raw.githubusercontent.com/PietJankbal/powershell-wrapper-for-wine/master/profile.ps1", bufW, 0, NULL) != S_OK )
++        if( URLDownloadToFileW(NULL, L"http://127.0.0.1:00000?pad=&url=https%3A%2F%2Fraw.githubusercontent.com%2FPietJankbal%2Fpowershell-wrapper-for-wine%2Fmaster%2Fprofile.ps1", bufW, 0, NULL) != S_OK )
+             { fputs("download failed",stderr ); exit(1); }
+     }
+     /* Main program: wrap the original powershell-commandline into correct syntax, and send it to pwsh.exe */ 

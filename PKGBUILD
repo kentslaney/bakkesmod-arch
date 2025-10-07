@@ -2,7 +2,7 @@
 pkgname=bakkesmod-legendary
 rlver=( 2 0 58 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -21,21 +21,33 @@ optdepends=()
 rlstr=$(IFS=. ; echo "${rlver[*]}")
 rlesc=$(IFS=- ; echo "${rlver[*]}")
 pkgesc=`echo "$pkgver" | sed 's%\.%-%g'`
-pwsh_sum='05ea332209f52b796a78246a89757a291f254fb6'
 
 source=(
     "dll-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/releases/download/$rlstr/bakkesmod.zip"
     "src-$rlesc.zip::https://github.com/bakkesmodorg/BakkesModInjectorCpp/archive/refs/tags/$rlstr.zip"
     "loopback-$pkgesc-$pkgrel.zip::https://github.com/kentslaney/bakkesmod-arch/archive/refs/tags/$pkgver-$pkgrel-legendary.zip"
     "https://github.com/kentslaney/bakkesmod-arch/releases/download/c369f24-1/inject.exe"
-    "pwshwrapper-${pwsh_sum:0:7}.zip::https://github.com/PietJankbal/powershell-wrapper-for-wine/archive/$pwsh_sum.zip"
+
+    "https://github.com/kentslaney/bakkesmod-arch/releases/download/05ea332-1/powershell32.exe"
+    "https://github.com/kentslaney/bakkesmod-arch/releases/download/05ea332-1/powershell64.exe"
+    "https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/PowerShell-7.4.1-win-x64.msi"
+    "https://github.com/Maximus5/ConEmu/releases/download/v23.07.24/ConEmuPack.230724.7z"
+    "https://www.7-zip.org/a/7z2501-x64.exe"
+    "https://raw.githubusercontent.com/PietJankbal/powershell-wrapper-for-wine/master/profile.ps1"
 )
+
 sha256sums=(
     '4184981c03f1d2df6458844c676d0fd7bf09d69d8d1894051f98c1638fc0609b'
     '99d1c6dfa5ec37113fc1ed4f1763c45aacd93981ffeefe6828330d234ff2a87b'
     'SKIP'
     '0e038a4f0a2799f6aaa34f6560f5d1d41fba0cf26f8814571cebc94f5bb67a6e'
-    '79ac12ff72dad9c0f79f5658fa4fed7c4d92476c6eea77427aa2bc84964fcf94'
+
+    '196886b557e632547d32354f20834e88ba3726df29a486c85d6409900064f364'
+    'e8dae4079a66d5a1564c577bd27caf8c890a1044d9c56948581591e196e4ac8c'
+    '66c7c35ed9a46bd27e3d915dcf9a05e38b3f5ebb039883b92aa62ffea20fb187'
+    '2a9b98ebecaede62665ef427b05b3a5ccdac7bd3202414fc0f4c10825b4f4ea2'
+    '78afa2a1c773caf3cf7edf62f857d2a8a5da55fb0fff5da416074c0d28b2b55f'
+    'b0fd5df54a2b281348ab03c2942b1e83278bee62c71e06d3d671724b49946593'
 )
 
 build() {
@@ -46,6 +58,7 @@ build() {
     unzip -qd "$tmp" "$srcdir/loopback-$pkgesc-$pkgrel.zip"
     mv "$tmp"/*/* "$srcdir"
     rm -fr "$tmp"/* "$tmp"
+    rm -rf "$srcdir/7zr.exe" && cp "$srcdir"/7z*-x64.exe "$srcdir/7zr.exe"
 }
 
 compile() {
@@ -60,34 +73,6 @@ compile() {
     # has to be below C++20 which removes ofstream functionality
     CXX_FLAGS=( "-std=c++17" "-static-libgcc" "-static-libstdc++" "-static" "-municode" "-mconsole" "-lpsapi" "-w" )
     CXX_LD=( "-I$patches" "-I/usr/x86_64-w64-mingw32/include" "-I$ref/BakkesModInjectorC++" )
-
-    # call injector with patched dll
-    cat <<"    EOF" > "$srcdir/main.cpp"
-        #include "DllInjector.h"
-        #include <iostream>
-
-        int wmain(int argc, wchar_t* argv[]) {
-            std::wstring ps = L"RocketLeague.exe";
-            const wchar_t* launcher = L"C:\\users\\steamuser\\AppData\\Roaming\\bakkesmod\\bakkesmod\\dll\\bakkesmod.dll";
-            DllInjector dllInjector;
-            bool launching = false;
-            for (int i = 1; i < argc; i++) {
-                auto arg = std::wstring(argv[i]);
-                if (arg == L"launching") {
-                    launching = true;
-                }
-            }
-            if (launching) {
-                std::cout << "Injector waiting for launch" << std::endl;
-                while (dllInjector.GetProcessID64(ps) == 0) {
-                    Sleep(1000);
-                }
-                std::cout << "Found PID, attempting injection" << std::endl;
-            }
-            dllInjector.InjectDLL(ps, launcher);
-            return 0;
-        }
-    EOF
 
     # std::search is defined in std::algorithm
     includes="#include <algorithm>"
@@ -143,6 +128,7 @@ install_data() {
         fi
     done
     echo "could not find a LEGENDARY_CONFIG_PATH with Rocket League installed" >&2
+    echo "if on SteamOS, re-run from the deck account" >&2
     exit 1
 }
 
@@ -174,11 +160,27 @@ build_version() {
     echo "$RL_version.$( cat "$srcdir/version.txt" ).$pkgver.$pkgrel"
 }
 
-powershell() {
-    cp -rf powershell64.exe "$WINEPREFIX/drive_c/windows/system32/WindowsPowerShell/v1.0/powershell.exe"
-    cp -rf powershell32.exe "$WINEPREFIX/drive_c/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
+powershell_installer() {
     eval "$1 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo \"powershell64_installed\"'"
     eval "$1 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo \"powershell32_installed\"'"
+}
+
+powershell() {
+    rm -f fsync
+    python sandbox.py > fsync &
+    sandbox_pid=$!
+    trap "if kill -0 '$sandbox_pid' &> /dev/null; then kill '$sandbox_pid'; fi" EXIT
+    echo -n "waiting for sandbox port "
+    tail -f fsync | grep -m 1 "."
+
+    pth32="$WINEPREFIX/drive_c/windows/system32/WindowsPowerShell/v1.0/powershell.exe"
+    pth64="$WINEPREFIX/drive_c/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
+
+    cp -f powershell32_.exe "$pth32"; cp -f powershell64_.exe "$pth64";
+    ( powershell_installer "$1" ) 2>/dev/null
+    cp -f powershell32.exe "$pth32"; cp -f powershell64.exe "$pth64";
+    if kill -0 "$sandbox_pid" &> /dev/null; then kill "$sandbox_pid"; fi
+    rm -f fsync
 }
 
 package() {
@@ -294,11 +296,7 @@ package() {
     if [ -f "$pfx/drive_c/Program Files/PowerShell/7/pwsh.exe" ]; then
         echo "skipping powershell installation in favor of existing pwsh.exe"
     else
-        # somewhere upstream has a non-checksumed file version
-        #(
-            cd "$srcdir/powershell-wrapper-for-wine-$pwsh_sum" &&
-            LD_PRELOAD= WINEPREFIX="$pfx" STEAM_COMPAT_DATA_PATH="$pfx0" STEAM_COMPAT_CLIENT_INSTALL_PATH="$(heroic_config)" powershell "$wine_bin"
-        #) 2> >(grep --color=NEVER mismatch >&2)
+        ( cd "$srcdir" && LD_PRELOAD= WINEPREFIX="$pfx" STEAM_COMPAT_DATA_PATH="$pfx0" STEAM_COMPAT_CLIENT_INSTALL_PATH="$(heroic_config)" powershell "$wine_bin" )
     fi
 }
 
@@ -356,4 +354,3 @@ pre_remove() {
     elif [ -d "$linked" ] && [ -h "$linked/steamuser" ]; then rm "$linked/steamuser"
     fi
 }
-

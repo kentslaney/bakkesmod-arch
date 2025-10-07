@@ -5,4 +5,9 @@
 *.zip
 *.exe
 *.tar.*
-
+/build
+/dist
+/ConEmuPack.*.7z
+/PowerShell-*.msi
+/profile.ps1
+/.github
