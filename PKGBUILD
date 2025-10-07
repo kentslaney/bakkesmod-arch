@@ -2,7 +2,7 @@
 pkgname=bakkesmod-legendary
 rlver=( 2 0 58 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=2
+pkgrel=3
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
@@ -177,7 +177,7 @@ powershell() {
     pth64="$WINEPREFIX/drive_c/windows/syswow64/WindowsPowerShell/v1.0/powershell.exe"
 
     cp -f powershell32_.exe "$pth32"; cp -f powershell64_.exe "$pth64";
-    ( powershell_installer "$1" ) 2>/dev/null
+    ( powershell_installer "$1" 2>pwsh.log ) || ( cat pwsh.log && false )
     cp -f powershell32.exe "$pth32"; cp -f powershell64.exe "$pth64";
     if kill -0 "$sandbox_pid" &> /dev/null; then kill "$sandbox_pid"; fi
     rm -f fsync
