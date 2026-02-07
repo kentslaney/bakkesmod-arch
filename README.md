@@ -83,4 +83,4 @@ and scroll down to the `Environment Variables` section
 ![The environment variables section](/../docs/env.png)
 
 ## Disk recommendations
-If you're running arch on desktop, LVM2 makes the filesystem management easier. If you're using the defaults on desktop, full disk encryption is also recommended, especially if advertising "arch btw".
+If you're running arch on desktop, LVM2 makes the filesystem management easier.
