@@ -84,3 +84,18 @@ and scroll down to the `Environment Variables` section
 
 ## Disk recommendations
 If you're running arch on desktop, LVM2 makes the filesystem management easier.
+
+## Debugging Network Connections
+Install [iftop](https://archlinux.org/packages/extra/x86_64/iftop/) and
+[mtr](https://archlinux.org/packages/extra/x86_64/mtr/)
+```bash
+ip a  # check which interface is being used
+sudo iftop -i wlp5s0 # replace wlp5s0
+mtr 8.8.8.8 # replace with the game server
+```
+If the connection is bad at the start, it may be your computer's connection to
+the local network. If it's bad in the middle, it may be your ISP. If it's bad
+at the end, it may be the game server.
+
+This adds traffic to the network and nodes reply out of goodwill, so I'd
+discourage using it passively.
