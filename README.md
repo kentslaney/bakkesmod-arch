@@ -98,4 +98,5 @@ the local network. If it's bad in the middle, it may be your ISP. If it's bad
 at the end, it may be the game server.
 
 This adds traffic to the network and nodes reply out of goodwill, so I'd
-discourage using it passively.
+discourage using it passively. Sharing your IP address or traceroute output may
+allow recipients to identify you or your location.
