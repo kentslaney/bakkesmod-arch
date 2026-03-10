@@ -2,6 +2,10 @@ import os, shlex, pathlib
 flag = "BAKKES"
 
 def update(user_settings):
+    no_net = os.environ.get("NO_NET", os.environ.get("BAKKES", "0")) == "1"
+    if no_net:
+        user_settings.update({"HTTP_PROXY": "http://127.0.0.1:8494"})
+
     promptless = os.environ.get("PROMPTLESS", "0") == "1"
     dll = "bakkesmod_promptless.dll" if promptless else "bakkesmod_official.dll"
     pfx = pathlib.Path(os.environ["STEAM_COMPAT_DATA_PATH"]) / \
