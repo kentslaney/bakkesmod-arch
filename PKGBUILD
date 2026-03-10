@@ -176,6 +176,15 @@ package() {
     cp -f "$srcdir/inject.exe" "$bm_pfx"
     cp -f "$srcdir/runner.sh" "$srcdir/dll_patch.py" "$bm_pfx"
 
+    cp_reg_py=$(sed "s/^ \{8\}//" <<"    EOF"
+        import os
+
+        with open(os.environ["FP_IN"]) as fp_in, open(os.environ["FP_OUT"], "w", encoding="utf-16") as fp_out:
+            fp_out.write(fp_in.read())
+    EOF
+    )
+    FP_IN="$srcdir/no_net.reg" FP_OUT="$compat/pfx/no_net.reg" python -c "$cp_reg_py"
+
     echo "direct injection command:" "'$bm_pfx/runner.sh' '$bm_pfx/inject.exe'"
 
     cp -f "$srcdir/settings_252950_bakkes.py" "$proton/.."

@@ -1,9 +1,10 @@
 ### replaces b5a430e9cf5078843d1a39f08ae95456891d4067872ad3512b04cb84f9a094c0
+### replaces d5f27e944c87a202b88c13e7896d5ebe9188f305ea56a58047714eebef5505ea
 
 import sys, os, pathlib, importlib.util
 
 user_settings = globals().get("user_settings", {})
-matching = ("settings_{}.py", "settings_{}_*.py")
+matching = ("settings_{}.py", "settings_{}_*.py", "settings__*.py")
 game_id = os.environ.get("SteamGameId")
 base = pathlib.Path(__file__).parents[0]
 check = lambda flag: os.environ.get(flag, "0") == "1"
@@ -24,7 +25,7 @@ for pattern in matching:
         elif hasattr(mod, "update"):
             mod.update(user_settings)
         elif not hasattr(mod, "flags") and hasattr(mod, "user_settings"):
-                user_settings.update(mod.user_settings)
+            user_settings.update(mod.user_settings)
         if hasattr(mod, "flags"):
             for flag, handler in mod.flags.items():
                 if isinstance(type(handler), dict):
