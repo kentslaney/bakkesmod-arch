@@ -1,4 +1,7 @@
 # BakkesMod for (Arch) Linux and Steam Deck
+> [!WARNING]
+> As of 2.66, BakkesMod will not be allowed online. `bakkesmod-steam` will automatically disconnect you from the network while injected (so turn the flag off if you have timeout issues) and `bakkesmod-legendary` users will need to run in offline mode (advanced menu) while injected.
+
 TL;DR: [AUR for steam](https://aur.archlinux.org/packages/bakkesmod-steam), [AUR for Heroic/Legendary](https://aur.archlinux.org/packages/bakkesmod-legendary)
 
 ## Supported Environments
