@@ -2,7 +2,7 @@
 pkgname=bakkesmod-steam
 rlver=( 2 0 66 )
 pkgver="${rlver[0]}.${rlver[2]}"
-pkgrel=1
+pkgrel=2
 pkgdesc="A mod aimed at making you better at Rocket League!"
 arch=('x86_64')
 url="https://bakkesmod.com/"
