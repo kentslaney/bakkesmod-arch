@@ -109,6 +109,13 @@ proton_paths=$(cat <<'EOF'
         exit 1
     fi
     proton=`sed -n 3p "$compat/config_info" | xargs -d '\n' dirname`
+    # Wine 10+ unified wine64 into wine; fall back when no legacy symlink exists
+    wine_bin="$proton/bin/wine64"
+    if [ ! -x "$wine_bin" ]; then wine_bin="$proton/bin/wine"; fi
+    if [ ! -x "$wine_bin" ]; then
+        echo "could not find proton wine executable" >&2
+        exit 1
+    fi
     bm_pfx="$compat/pfx/drive_c/users/steamuser/AppData/Roaming/bakkesmod"
 EOF
 )
@@ -127,8 +134,9 @@ build_version() {
 }
 
 powershell_installer() {
-    "$1" 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell64_installed"'
-    "$1" 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell32_installed"'
+    # under fakeroot, wineserver sees the spoofed UID via LD_PRELOAD but wine-preloader bypasses it; clear LD_PRELOAD so both see the real UID
+    env -u LD_PRELOAD "$1" 'C:\windows\system32\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell64_installed"'
+    env -u LD_PRELOAD "$1" 'C:\windows\syswow64\WindowsPowerShell\v1.0\powershell.exe' -noni -c 'echo "powershell32_installed"'
 }
 
 powershell() {
@@ -159,7 +167,7 @@ package() {
     cat <<"    EOF" >> "$srcdir/runner.sh"
         dll=`[ "$PROMPTLESS" = 1 ] && echo "bakkesmod_promptless.dll" || echo "bakkesmod_official.dll"`
         ln -sf "$bm_pfx/bakkesmod/dll/$dll" "$bm_pfx/bakkesmod/dll/bakkesmod.dll"
-        WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$proton/bin/wine64" "$@"
+        env -u LD_PRELOAD WINEFSYNC=1 WINEPREFIX="$compat/pfx/" "$wine_bin" "$@"
     EOF
     chmod a+x "$srcdir/runner.sh"
     mkdir -p "$bm_pfx"
@@ -217,7 +225,7 @@ package() {
     if [ -f "$compat/pfx/drive_c/Program Files/PowerShell/7/pwsh.exe" ]; then
         echo "skipping powershell installation in favor of existing pwsh.exe"
     else
-        ( cd "$srcdir" && WINEPREFIX="$compat/pfx/" powershell "$proton/bin/wine64" )
+        ( cd "$srcdir" && WINEPREFIX="$compat/pfx/" powershell "$wine_bin" )
     fi
     echo "to finish installing, update your launch options by prepending \"BAKKES=1\" or by setting them to \"BAKKES=1 %command%\" if none have been set yet"
     echo "to inject the bakkesmod DLL without the message box about version verification, also prepend \"PROMPTLESS=1\""
