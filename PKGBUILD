@@ -1,6 +1,6 @@
 # Maintainer: Kent Slaney <kent@slaney.org>
 pkgname=bakkesmod-legendary
-rlver=( 2 0 71 )
+rlver=( 2 0 72 )
 pkgver="${rlver[0]}.${rlver[2]}"
 pkgrel=1
 pkgdesc="A mod aimed at making you better at Rocket League!"
@@ -37,8 +37,8 @@ source=(
 )
 
 sha256sums=(
-    'db8b62a026faafb08b5838c712898bc2ab81817e8b1bfa416091440b2ff958d0'
-    'e49929c27a91610262e4d9ea3bb39e481effe983d4671ed06d349f523c1a6180'
+    '75568f4e64da86caf34eaecf1bc93fb4675bb10e27939bab54a8283cfe73cab3'
+    'e91da3b19761e40b98ebb55faa44c286d9e486774d908794568a67cf902ff9ce'
     'SKIP'
     '0e038a4f0a2799f6aaa34f6560f5d1d41fba0cf26f8814571cebc94f5bb67a6e'
 
